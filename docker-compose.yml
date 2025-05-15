@@ -1,0 +1,77 @@
+services:
+  db:
+    image: postgres:17.0-alpine3.20
+    #    deploy:
+    #      placement:
+    #        constraints:
+    #          - node.role==manager
+    #        max_replicas_per_node: 1
+    env_file:
+      - .env.docker
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_PORT=${DB_PORT}
+    healthcheck:
+      #      test: [ "CMD", "pg_isready", "-U", "postgres" ]
+      test: "pg_isready -U ${DB_USER}"
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mynetwork
+    ports:
+      - "5433:5432"
+    restart: always
+    volumes:
+      - ./db/initdb.d:/docker-entrypoint-initdb.d:ro
+      - db_data:/var/lib/postgresql/data
+
+  server:
+    env_file:
+      - .env.docker
+    build:
+      context: .
+      dockerfile: Dockerfile
+    #    command: >
+    #      bash -c "python manage.py migrate &&
+    #      python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/apps
+      - static_volume:/apps/static
+      - media_volume:/apps/media
+    ports:
+      - "8000:8000"
+    environment:
+      - DJANGO_SETTINGS_MODULE=snapsapi.config.settings.docker
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=db
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - mynetwork
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/default.conf
+      - static_volume:/static
+      - media_volume:/media
+    depends_on:
+      - server
+    networks:
+      - mynetwork
+
+volumes:
+  db_data:
+  static_volume:
+  media_volume:
+
+networks:
+  mynetwork:
