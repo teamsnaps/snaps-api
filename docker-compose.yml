@@ -39,8 +39,8 @@ services:
     #      python manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/apps
-      - static_volume:/apps/static
-      - media_volume:/apps/media
+#      - static_volume:/apps/static
+#      - media_volume:/apps/media
     ports:
       - "8000:8000"
     environment:
@@ -60,9 +60,9 @@ services:
     ports:
       - "80:80"
     volumes:
-      - ./nginx/default.conf:/etc/nginx/default.conf
-      - static_volume:/static
-      - media_volume:/media
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+#      - static_volume:/static
+#      - media_volume:/media
     depends_on:
       - server
     networks:

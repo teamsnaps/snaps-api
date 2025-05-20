@@ -29,10 +29,6 @@ DEBUG = True
 
 
 # Application definition
-
-
-
-
 DJANGO_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -65,7 +61,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'snapsapi.urls'
+ROOT_URLCONF = 'snapsapi.config.urls'
 
 TEMPLATES = [
     {
@@ -85,16 +81,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'snapsapi.config.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
 
 
 # Password validation

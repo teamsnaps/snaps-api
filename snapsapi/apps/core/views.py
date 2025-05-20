@@ -1,3 +1,9 @@
-from django.shortcuts import render
+from rest_framework.generics import ListCreateAPIView
 
-# Create your views here.
+from snapsapi.apps.core.serializers import StorySerializer
+from snapsapi.apps.core.models import Story
+
+
+class StoryListCreateView(ListCreateAPIView):
+    queryset = Story.objects.all()
+    serializer_class = StorySerializer
