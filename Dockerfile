@@ -1,6 +1,8 @@
 FROM python:3.12
+ENV PYTHONUNBUFFERED=1
 LABEL authors="ask4git"
 
+COPY . /app
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y python3-venv python3-pip curl
@@ -22,8 +24,8 @@ RUN poetry config virtualenvs.create false && \
         poetry install --no-interaction --no-dev --no-ansi --no-root -vvv && \
         poetry cache clear pypi --all -n
 
-COPY . /app
-EXPOSE 8000
-RUN ["chmod", "+x", "./entrypoint.sh"]
+EXPOSE 8080
+COPY ./entrypoint.sh ./entrypoint.sh
+RUN chmod +x ./entrypoint.sh
 ENTRYPOINT ["./entrypoint.sh"]
-CMD ["gunicorn", "snapsapi.config.wsgi:application", "--bind", "0.0.0.0:8000", "--reload"]
+CMD ["gunicorn", "snapsapi.config.wsgi:application", "--bind", "0.0.0.0:8080", "--reload"]

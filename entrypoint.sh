@@ -11,6 +11,7 @@ set -e
 echo "🚀 Running migrations..."
 python manage.py migrate core
 python manage.py migrate
+python manage.py collectstatic --noinput
 
 echo "🧙 Starting server..."
 exec "$@"

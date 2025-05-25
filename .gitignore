@@ -18,8 +18,8 @@ db.sqlite3
 db.sqlite3-journal
 
 # Media and Static files
-media/
-static/
+snapsapi/media/
+snapsapi/static/
 
 # IDE
 .run/
