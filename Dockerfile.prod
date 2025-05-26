@@ -16,7 +16,7 @@ ENV PATH=/root/.local/bin:$PATH
 # Install poetry to install our dependencies
 RUN pipx install poetry==1.8.3
 ENV PATH=/root/.local/bin:$PATH
-ENV DJANGO_SETTINGS_MODULE=snapsapi.config.settings.docker
+ENV DJANGO_SETTINGS_MODULE=snapsapi.config.settings.prod
 
 COPY pyproject.toml poetry.lock* /app/
 RUN poetry config virtualenvs.create false && \

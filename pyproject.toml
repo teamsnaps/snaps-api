@@ -11,6 +11,14 @@ django = "4.2.16"
 djangorestframework = "3.15.2"
 gunicorn = "20.1.0"
 psycopg2-binary = "^2.9.10"
+djangorestframework-simplejwt = "^5.5.0"
+django-allauth = "^65.8.0"
+dj-rest-auth = "^7.0.1"
+requests = "^2.32.3"
+cryptography = "^45.0.2"
+rest-framework-simplejwt = "^0.0.2"
+django-storages = "^1.14.6"
+boto3 = "^1.38.23"
 
 
 [build-system]
