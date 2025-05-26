@@ -18,6 +18,7 @@ requests = "^2.32.3"
 cryptography = "^45.0.2"
 rest-framework-simplejwt = "^0.0.2"
 django-storages = "^1.14.6"
+boto3 = "^1.38.23"
 
 
 [build-system]
