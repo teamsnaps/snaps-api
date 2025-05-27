@@ -3,6 +3,7 @@ from rest_framework.urlpatterns import format_suffix_patterns
 
 from snapsapi.apps.core import views
 
+app_name = 'core'
 
 urlpatterns = []
 
@@ -11,5 +12,3 @@ urlpatterns += [
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)
-
-app_name = 'core'

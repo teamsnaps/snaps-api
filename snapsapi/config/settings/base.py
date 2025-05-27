@@ -40,6 +40,7 @@ DJANGO_APPS = [
 PROJECT_APPS = [
     'snapsapi',
     'snapsapi.apps.core',
+    'snapsapi.apps.users',
 ]
 
 THIRD_PARTY_APPS = [
@@ -135,5 +136,16 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+AUTH_USER_MODEL = 'users.User'
+
+# allauth/dj-rest-auth 표준 설정
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None        # username 필드 사용 안 함(선택)
+ACCOUNT_EMAIL_REQUIRED = True                   # 이메일 필수
+ACCOUNT_USERNAME_REQUIRED = False               # username 없이 회원가입 허용
+ACCOUNT_AUTHENTICATION_METHOD = "email"         # 이메일로 로그인
+ACCOUNT_EMAIL_VERIFICATION = "optional"         # or "mandatory"
+
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
 ACCOUNT_LOGIN_METHODS = {'email'}
+
+GOOGLE_OAUTH2_REDIRECT_URL=''

@@ -20,4 +20,6 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('core/', include('snapsapi.apps.core.urls')),
+    path('dj-rest-auth/', include('dj_rest_auth.urls')),
+    path('users/', include('snapsapi.apps.users.urls')),
 ]
