@@ -7,12 +7,6 @@ ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS += ['storages']
 
-CSRF_COOKIE_NAME = 'csrftoken'
-CSRF_HEADER_NAME = 'X-CSRFToken'
-CSRF_TRUSTED_ORIGINS = [
-    "https://snaps-front.vercel.app",
-]
-
 # CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWED_ORIGINS = [
     "https://snaps-front.vercel.app",
