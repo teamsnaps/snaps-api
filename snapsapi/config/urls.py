@@ -22,4 +22,5 @@ urlpatterns = [
     path('core/', include('snapsapi.apps.core.urls')),
     path('dj-rest-auth/', include('dj_rest_auth.urls')),
     path('users/', include('snapsapi.apps.users.urls')),
+    path('users/', include('allauth.urls')),
 ]
