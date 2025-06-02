@@ -226,10 +226,11 @@ REST_AUTH = {
 }
 
 SPECTACULAR_SETTINGS = {
-    "TITLE": "My API",
-    "DESCRIPTION": "API documentation",
-    "VERSION": "1.0.0",
+    "TITLE": "Snaps-API",
+    "DESCRIPTION": "A detailed description of Snaps-API",
+    "VERSION": "0.9.0",
     "SERVE_INCLUDE_SCHEMA": False,  # Swagger에서 schema json 링크 숨기기
+    'COMPONENT_SPLIT_REQUEST': True
     # 그 외 자세한 옵션은 공식 문서 참고!
 }
 

@@ -13,11 +13,18 @@ class Story(models.Model):
 
 class Post(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts')
-    image = models.JSONField(default=list, blank=True)
+    images = models.JSONField(default=list, blank=True)
     caption = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     tags = models.ManyToManyField('Tag', blank=True, related_name='posts')
+    likes_count = models.PositiveIntegerField(default=0)
+    comments_count = models.PositiveIntegerField(default=0)
 
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user} - {self.caption[:20]}"
 
 class Tag(models.Model):
     name = models.CharField(max_length=50, unique=True)
