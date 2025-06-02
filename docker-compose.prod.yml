@@ -1,0 +1,9 @@
+services:
+  snapsapi:
+    platform: "linux/amd64"
+    build:
+      context: "."
+      dockerfile: Dockerfile
+    image: snapsapi-ecsdeploy:latest
+    env_file:
+      - .env.prod
