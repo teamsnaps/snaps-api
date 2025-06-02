@@ -18,10 +18,12 @@ requests = "^2.32.3"
 cryptography = "^45.0.2"
 rest-framework-simplejwt = "^0.0.2"
 django-storages = "^1.14.6"
-boto3 = "^1.38.23"
+boto3 = "1.28.1"
 django-cors-headers = "^4.7.0"
 shortid = "^0.1.2"
 bson = "^0.5.10"
+drf-spectacular = "^0.28.0"
+botocore = "1.31.1"
 
 
 [build-system]
