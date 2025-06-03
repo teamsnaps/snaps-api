@@ -14,11 +14,12 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 import json
 from rest_framework import serializers as s
-from snapsapi.apps.users.schemas import USER_REGISTRATION_RESPONSE_EXAMPLE
+from snapsapi.apps.users.schemas import *
 
 from snapsapi.apps.users.serializers import (
     SocialLoginWriteSerializer,
     SocialLoginReadSerializer,
+    SocialLoginResponseSerializer,
 )
 
 
@@ -45,18 +46,21 @@ class SocialLoginView(_SocialLoginView):
 
     @extend_schema(
         operation_id="social_login",
-        summary="소셜 회원가입",
+        summary="소셜 회원가입 / 로그인",
         description="provider와 access_token을 받아서 소셜 회원가입/로그인 처리를 수행합니다.",
         request=inline_serializer(
             name="SocialLoginInlineRequest",
             fields={
-                "access_token": s.CharField(),
-                "provider": s.ChoiceField(choices=['google', 'kakao', 'naver']),
+                "access_token": s.CharField(help_text="소셜 플랫폼에서 발급받은 액세스 토큰"),
+                "provider": s.ChoiceField(choices=['google', 'kakao', 'naver'],
+                                          help_text="사용할 소셜 로그인 제공자 (google, kakao, naver 중 하나)"),
             }
-        ),   # POST 요청 body
+
+        ),
+        examples=SOCIAL_LOGIN_REQUEST_EXAMPLE,
         responses={
             status.HTTP_201_CREATED: OpenApiResponse(
-                response=SocialLoginReadSerializer,
+                response=SocialLoginResponseSerializer,
                 examples=USER_REGISTRATION_RESPONSE_EXAMPLE,
             )
         },

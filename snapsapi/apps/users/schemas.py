@@ -1,15 +1,30 @@
 from drf_spectacular.utils import OpenApiExample
+from rest_framework import status
 
+# ✅ Request Body Example
+SOCIAL_LOGIN_REQUEST_EXAMPLE = [
+    OpenApiExample(
+        "소셜 로그인 요청 예시",
+        description="소셜 로그인 요청 예시입니다.",
+        value={
+            "access_token": "ya29.a0ARrdaM...abc123",
+            "provider": "google"
+        },
+        request_only=True
+    )
+]
+
+# ✅ Response Body Example (201 CREATED)
 USER_REGISTRATION_RESPONSE_EXAMPLE = [
     OpenApiExample(
         "회원가입 응답 예시",
         summary="User Registration Response Example",
         description="회원가입 응답 예시입니다.",
         value={
-            "access": "eyJhbGciOiJIU...k5N0xXvYeVC4",
-            "refresh": "eyJ0b2tl0eXBl...CI6MTc0OTUwM",
+            "access": "ya29.a0ARrdaM...abc123",
+            "refresh": "ya29.a0ARrdaM...abc123",
             "user": {
-                "pk": 7,
+                "uid": "PzxwwwOnV",
                 "username": "User_a090j_RX",
                 "email": "ask4git@gmail.com",
                 "first_name": "진혁",

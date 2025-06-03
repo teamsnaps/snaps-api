@@ -15,6 +15,10 @@ def generate_oid():
 
 
 class User(AbstractUser):
+    uid = models.CharField(
+        max_length=32, unique=True, editable=False, default=generate_sid,
+        db_index=True, help_text="외부 노출용 유저 고유 식별자"
+    )
     email = models.EmailField(db_index=True, null=False, blank=False)
     phone_number = models.CharField(max_length=30, null=False, blank=False)
     deleted = models.BooleanField(default=False, null=False)
