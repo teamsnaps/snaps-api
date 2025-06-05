@@ -34,3 +34,15 @@ USER_REGISTRATION_RESPONSE_EXAMPLE = [
         response_only=True,
     )
 ]
+
+USER_REGISTRATION_RESPONSE_ERROR_EXAMPLE = [
+    OpenApiExample(
+        "회원가입 에러 응답 예시",
+        summary="User Registration Response Example",
+        description="회원가입 에러 응답 예시입니다.",
+        value={
+            "detail": "OAuth2 인증에 실패했습니다. 유효한 access_token을 제공해주세요."
+        },
+        response_only=True,
+    )
+]

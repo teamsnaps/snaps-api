@@ -1,13 +1,11 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from bson.objectid import ObjectId
-from shortid import ShortId
-
-SID_GENERATOR = ShortId()
+import shortuuid
 
 
-def generate_sid():
-    return str(SID_GENERATOR.generate())
+def generate_short_uuid():
+    return shortuuid.uuid()
 
 
 def generate_oid():
@@ -16,14 +14,14 @@ def generate_oid():
 
 class User(AbstractUser):
     uid = models.CharField(
-        max_length=32, unique=True, editable=False, default=generate_sid,
+        max_length=64, unique=True, editable=False, default=generate_short_uuid,
         db_index=True, help_text="외부 노출용 유저 고유 식별자"
     )
     email = models.EmailField(db_index=True, null=False, blank=False)
     phone_number = models.CharField(max_length=30, null=False, blank=False)
     deleted = models.BooleanField(default=False, null=False)
     deleted_at = models.DateTimeField(null=True, blank=True)
-    username = models.CharField(max_length=30, unique=True, default="User_{}".format(generate_sid()))
+    username = models.CharField(max_length=50, unique=True, default="User_{}".format(generate_short_uuid))
 
     # username = models.CharField(
     #     _("username"),

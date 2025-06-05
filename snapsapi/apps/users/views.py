@@ -1,9 +1,8 @@
-
 from django.conf import settings
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from allauth.socialaccount.providers.kakao.views import KakaoOAuth2Adapter
 from allauth.socialaccount.providers.naver.views import NaverOAuth2Adapter
-from allauth.socialaccount.providers.oauth2.client import OAuth2Client
+from allauth.socialaccount.providers.oauth2.client import OAuth2Client, OAuth2Error
 from dj_rest_auth.registration.views import (
     SocialLoginView as _SocialLoginView,
     SocialConnectView as _SocialConnectView
@@ -30,8 +29,8 @@ class SocialLoginView(_SocialLoginView):
 
     PROVIDER_ADAPTERS = {
         'google': GoogleOAuth2Adapter,
-        # 'kakao': KakaoOAuth2Adapter,
-        # 'naver': NaverOAuth2Adapter,
+        'kakao': KakaoOAuth2Adapter,
+        'naver': NaverOAuth2Adapter,
     }
     CALLBACK_URLS = {
         'google': settings.GOOGLE_OAUTH2_REDIRECT_URL,
@@ -62,6 +61,14 @@ class SocialLoginView(_SocialLoginView):
             status.HTTP_201_CREATED: OpenApiResponse(
                 response=SocialLoginResponseSerializer,
                 examples=USER_REGISTRATION_RESPONSE_EXAMPLE,
+            ),
+            status.HTTP_400_BAD_REQUEST: OpenApiResponse(
+                response=inline_serializer(
+                    name="SocialLoginErrorResponse",
+                    fields={
+                        "detail": s.CharField(),
+                    }),
+                examples=USER_REGISTRATION_RESPONSE_ERROR_EXAMPLE,
             )
         },
         auth=None,
@@ -74,12 +81,18 @@ class SocialLoginView(_SocialLoginView):
         if not adapter_class:
             return Response(
                 {"provider": [
-                    f"'{provider}' is not a supported provider. Choose one of: {', '.join(self.PROVIDER_ADAPTERS.keys())}."]},
+                    f"'{provider}' is not a supported provider. Please choose one of: [{', '.join(self.PROVIDER_ADAPTERS.keys())}]"]},
                 status=status.HTTP_400_BAD_REQUEST
             )
         self.adapter_class = adapter_class
         self.callback_url = callback_url
-        return super().post(request, *args, **kwargs)
+        try:
+            return super().post(request, *args, **kwargs)
+        except OAuth2Error as e:
+            return Response(
+                {"detail": "OAuth2 인증에 실패했습니다. 유효한 access_token을 제공해주세요."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
 
 class GoogleConnectView(_SocialConnectView):

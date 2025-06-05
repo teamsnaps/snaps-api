@@ -1095,13 +1095,14 @@ test = ["build[virtualenv] (>=1.0.3)", "filelock (>=3.4.0)", "ini2toml[lite] (>=
 type = ["importlib_metadata (>=7.0.2)", "jaraco.develop (>=7.21)", "mypy (==1.14.*)", "pytest-mypy"]
 
 [[package]]
-name = "shortid"
-version = "0.1.2"
-description = "Short id generator"
+name = "shortuuid"
+version = "1.0.13"
+description = "A generator library for concise, unambiguous and URL-safe UUIDs."
 optional = false
-python-versions = "*"
+python-versions = ">=3.6"
 files = [
-    {file = "shortid-0.1.2.tar.gz", hash = "sha256:adaa0c51269d9b5b635eedc408672b08697d404099370ea0857d108a48eef6ac"},
+    {file = "shortuuid-1.0.13-py3-none-any.whl", hash = "sha256:a482a497300b49b4953e15108a7913244e1bb0d41f9d332f5e9925dba33a3c5a"},
+    {file = "shortuuid-1.0.13.tar.gz", hash = "sha256:3bb9cf07f606260584b1df46399c0b87dd84773e7b25912b7e391e30797c5e72"},
 ]
 
 [[package]]
@@ -1182,4 +1183,4 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "b160ee9569a1371447e38cfedab0817d27ea47582ae3c26465967a7f249e38a4"
+content-hash = "05e0682ba5e28b1c04490062cc868c6776a08bde84a0e3276751f25701c53af8"
