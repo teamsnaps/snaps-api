@@ -145,7 +145,7 @@ LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'
 
-USE_I18N = True
+USE_I18N = False
 
 USE_TZ = True
 
@@ -214,28 +214,76 @@ REST_AUTH = {
     'SESSION_LOGIN': True,
     'USE_JWT': True,
 
-    'JWT_AUTH_COOKIE': None,
-    'JWT_AUTH_REFRESH_COOKIE': None,
+    'JWT_AUTH_COOKIE': 'access-token',
+    'JWT_AUTH_REFRESH_COOKIE': 'refresh-token',
     'JWT_AUTH_REFRESH_COOKIE_PATH': '/',
     'JWT_AUTH_SECURE': False,
     'JWT_AUTH_HTTPONLY': False,
     'JWT_AUTH_SAMESITE': 'Lax',
-    'JWT_AUTH_RETURN_EXPIRATION': False,
+    'JWT_AUTH_RETURN_EXPIRATION': True,
     'JWT_AUTH_COOKIE_USE_CSRF': False,
     'JWT_AUTH_COOKIE_ENFORCE_CSRF_ON_UNAUTHENTICATED': False,
 }
-
-SPECTACULAR_SETTINGS = {
-    "TITLE": "My API",
-    "DESCRIPTION": "API documentation",
-    "VERSION": "1.0.0",
-    "SERVE_INCLUDE_SCHEMA": False,  # Swagger에서 schema json 링크 숨기기
-    # 그 외 자세한 옵션은 공식 문서 참고!
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
 }
 
-# Google OAuth 2.0 Configure
-GOOGLE_OAUTH2_CLIENT_ID = os.getenv("GOOGLE_OAUTH2_CLIENT_ID")
-GOOGLE_OAUTH2_CLIENT_SECRET = os.getenv("GOOGLE_OAUTH2_CLIENT_SECRET")
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Snaps-API",
+    "DESCRIPTION": "A detailed description of Snaps-API",
+    "VERSION": "0.9.0",
+    "SERVE_INCLUDE_SCHEMA": False,  # Swagger에서 schema json 링크 숨기기
+    'COMPONENT_SPLIT_REQUEST': True,
+    'SCHEMA_COERCE_METHOD_NAMES': ['get', 'post', 'put', 'patch', 'delete'],
+    # 그 외 자세한 옵션은 공식 문서 참고!
+    'APPEND_COMPONENTS': {
+        'paths': {
+            '/users/social-login/{format}': None,
+        }
+    },
+    'PREPROCESSING_HOOKS': ['snapsapi.config.spectacular_hooks.remove_dj_rest_auth_endpoints'],
+}
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'APP': {
+            'client_id': os.getenv("GOOGLE_CLIENT_ID"),
+            'secret': os.getenv("GOOGLE_CLIENT_SECRET"),
+            'key': ''
+        },
+        'SCOPE': ['profile', 'email'],
+        'AUTH_PARAMS': {'access_type': 'offline'},
+    },
+    'kakao': {
+        'APP': {
+            'client_id': os.getenv("KAKAO_CLIENT_ID"),
+            'secret': os.getenv("KAKAO_CLIENT_SECRET"),
+            'key': ''
+        }
+    },
+    'naver': {
+        'APP': {
+            'client_id': os.getenv("NAVER_CLIENT_ID"),
+            'secret': os.getenv("NAVER_CLIENT_SECRET"),
+            'key': ''
+        }
+    },
+}
+
+
+# # Google OAuth 2.0 Configure
+# GOOGLE_OAUTH2_CLIENT_ID = os.getenv("GOOGLE_OAUTH2_CLIENT_ID")
+# GOOGLE_OAUTH2_CLIENT_SECRET = os.getenv("GOOGLE_OAUTH2_CLIENT_SECRET")
 GOOGLE_OAUTH2_REDIRECT_URL = os.getenv("GOOGLE_OAUTH2_REDIRECT_URL")
 
 # allauth/dj-rest-auth 표준 설정
@@ -252,3 +300,6 @@ AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
 AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
 AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME')
+
+SOCIALACCOUNT_ADAPTER = 'snapsapi.apps.users.adapters.CustomSocialAccountAdapter'
+

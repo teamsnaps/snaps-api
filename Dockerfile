@@ -5,8 +5,8 @@ LABEL authors="ask4git"
 COPY . /app
 WORKDIR /app
 
-ARG SNAPSAPI_SETTINGS_MODULE
-ARG SNAPSAPI_PORT
+#ARG SNAPSAPI_SETTINGS_MODULE
+#ARG SNAPSAPI_PORT
 
 RUN apt-get update && apt-get install -y python3-venv python3-pip curl
 
@@ -18,7 +18,8 @@ ENV PATH=/root/.local/bin:$PATH
 # Install poetry to install our dependencies
 RUN pipx install poetry==1.8.3
 ENV PATH=/root/.local/bin:$PATH
-ENV DJANGO_SETTINGS_MODULE=${SNAPSAPI_SETTINGS_MODULE}
+#ENV DJANGO_SETTINGS_MODULE=${SNAPSAPI_SETTINGS_MODULE}
+ENV DJANGO_SETTINGS_MODULE=snapsapi.config.settings.prod
 
 
 COPY pyproject.toml poetry.lock* /app/
@@ -27,8 +28,8 @@ RUN poetry config virtualenvs.create false &&  \
     poetry install --no-interaction --no-dev --no-ansi --no-root -vvv &&  \
     poetry cache clear pypi --all -n
 
-EXPOSE ${SNAPSAPI_PORT}
+EXPOSE 8080
 COPY ./entrypoint.sh ./entrypoint.sh
 RUN chmod +x ./entrypoint.sh
 ENTRYPOINT ["./entrypoint.sh"]
-CMD ["gunicorn", "snapsapi.config.wsgi:application", "--bind", "0.0.0.0:${SNAPSAPI_PORT}", "--reload"]
+CMD ["gunicorn", "snapsapi.config.wsgi:application", "--bind", "0.0.0.0:8080", "--reload"]

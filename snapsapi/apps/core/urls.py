@@ -9,6 +9,12 @@ urlpatterns = []
 
 urlpatterns += [
     path('story/', views.StoryListCreateView.as_view(), name='story'),
+    path('posts/', views.PostListCreateView.as_view(), name='posts'),
+    path('posts/<str:uid>/', views.PostDetailView.as_view(), name='posts_delete'),
+    path('posts/delete/<str:uid>/', views.PostSoftDeleteView.as_view(), name='posts_delete'),
+    path('feed_mock/', views.FeedMockListView.as_view(), name='feed_mock'),
+    path('feed/', views.FeedMockListView.as_view(), name='feed_mock'),
+
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)
