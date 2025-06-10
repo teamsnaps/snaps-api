@@ -3,9 +3,9 @@ Resources:
   - TargetService:
       Type: AWS::ECS::Service
       Properties:
-        TaskDefinition: "<TASK_DEFINITION>"
+        TaskDefinition: "snaps-ecsdeploy-ECS-TD"
         LoadBalancerInfo:
-          ContainerName: "<CONTAINER_NAME>"
+          ContainerName: "snaps-ecsdeploy-ECS-Container"
           ContainerPort: 8080
 #Hooks:
 #  AfterAllowTestTraffic:
