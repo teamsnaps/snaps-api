@@ -9,7 +9,7 @@ INSTALLED_APPS += ['storages']
 
 # CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWED_ORIGINS = [
-    "https://snaps-front.vercel.app",
+    os.getenv('SNAPSAPI_BASE_FRONTEND_URL'),
 ]
 CORS_ALLOW_CREDENTIALS = True
 
