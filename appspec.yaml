@@ -5,5 +5,10 @@ Resources:
       Properties:
         TaskDefinition: "<TASK_DEFINITION>"
         LoadBalancerInfo:
-          ContainerName: "server"
+          ContainerName: "<CONTAINER_NAME>"
           ContainerPort: 8080
+#Hooks:
+#  AfterAllowTestTraffic:
+#    - location: scripts/health_check.sh
+#      timeout: 180
+#      runas: root
