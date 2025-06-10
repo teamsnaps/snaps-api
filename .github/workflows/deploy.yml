@@ -52,6 +52,24 @@ jobs:
           task-definition: ${{ env.ECS_TASK_DEFINITION }}
           container-name: ${{ env.CONTAINER_NAME }}
           image: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.SHORT_SHA }}
+          environment-variables: |
+            CONTAINER_NAME=${{secrets.CONTAINER_NAME}}
+            DOCKER_IMAGE_NAME=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}
+            SNAPSAPI_SECRET_KEY=${{secrets.SNAPSAPI_SECRET_KEY}}
+            BASE_BACKEND_URL=${{secrets.BASE_BACKEND_URL}}
+            DB_HOST=${{secrets.DB_HOST}}
+            DB_PORT=${{secrets.DB_PORT}}
+            DB_NAME=${{secrets.DB_NAME}}
+            DB_USER=${{secrets.DB_USER}}
+            DB_PASSWORD=${{secrets.DB_PASSWORD}}
+            AWS_S3_REGION_NAME=${{secrets.AWS_S3_REGION_NAME}}
+            AWS_ACCESS_KEY_ID=${{secrets.AWS_ACCESS_KEY_ID}}
+            AWS_SECRET_ACCESS_KEY=${{secrets.AWS_SECRET_ACCESS_KEY}}
+            AWS_S3_CUSTOM_DOMAIN=${{secrets.AWS_S3_CUSTOM_DOMAIN}}
+            AWS_STORAGE_BUCKET_NAME=${{secrets.AWS_STORAGE_BUCKET_NAME}}
+            GOOGLE_CLIENT_ID=${{secrets.GOOGLE_CLIENT_ID}}
+            GOOGLE_CLIENT_SECRET=${{secrets.GOOGLE_CLIENT_SECRET}}
+            GOOGLE_REDIRECT_URL=${{secrets.GOOGLE_REDIRECT_URL}}
 
       - name: Deploy ECS service (Blue/Green)
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
