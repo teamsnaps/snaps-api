@@ -29,6 +29,7 @@ class Post(models.Model):
     images = models.JSONField(default=list, blank=True)
     caption = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     is_deleted = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     tags = models.ManyToManyField('Tag', blank=True, related_name='posts')

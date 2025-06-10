@@ -27,6 +27,7 @@ class PostDetailView(UpdateAPIView):
     queryset = m.Post.objects.all()
     serializer_class = PostSerializer
     permission_classes = [IsAuthenticated]  # 필요에 따라 커스텀
+    lookup_field = 'uid'
 
     def get_queryset(self):
         return m.Post.objects.filter(user=self.request.user)
