@@ -11,6 +11,9 @@ def generate_short_uuid():
 def generate_oid():
     return str(ObjectId())
 
+def generate_username_with_short_uuid():
+    suid = generate_short_uuid()[:6]
+    return f"User_{suid}"
 
 class User(AbstractUser):
     uid = models.CharField(
@@ -21,7 +24,7 @@ class User(AbstractUser):
     phone_number = models.CharField(max_length=30, null=False, blank=False)
     deleted = models.BooleanField(default=False, null=False)
     deleted_at = models.DateTimeField(null=True, blank=True)
-    username = models.CharField(max_length=50, unique=True, default="User_{}".format(generate_short_uuid))
+    username = models.CharField(max_length=50, unique=True, default=generate_username_with_short_uuid)
 
     # username = models.CharField(
     #     _("username"),
