@@ -91,9 +91,6 @@ REST_FRAMEWORK = {
 }
 
 REST_USE_JWT = True
-SIMPLE_JWT = {
-    'AUTH_HEADER_TYPES': ('Bearer',),
-}
 
 TEMPLATES = [
     {
@@ -282,8 +279,6 @@ SOCIALACCOUNT_PROVIDERS = {
 
 
 # # Google OAuth 2.0 Configure
-# GOOGLE_OAUTH2_CLIENT_ID = os.getenv("GOOGLE_OAUTH2_CLIENT_ID")
-# GOOGLE_OAUTH2_CLIENT_SECRET = os.getenv("GOOGLE_OAUTH2_CLIENT_SECRET")
 GOOGLE_OAUTH2_REDIRECT_URL = os.getenv("GOOGLE_OAUTH2_REDIRECT_URL")
 
 # allauth/dj-rest-auth 표준 설정
