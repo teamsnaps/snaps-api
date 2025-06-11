@@ -1,12 +1,13 @@
 from rest_framework import status
-from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, ListAPIView, UpdateAPIView, \
+from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListAPIView, UpdateAPIView, \
     RetrieveUpdateAPIView
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 
 from snapsapi.apps.core.schemas import MOCK_PRIVATE_FEED, MOCK_PUBLIC_FEED
-from snapsapi.apps.core.serializers import StorySerializer, PostSerializer
+from snapsapi.apps.core.serializers import StorySerializer, WritePostSerializer, ReadPostSerializer, PostSerializer
 from snapsapi.apps.core import models as m
 from rest_framework.response import Response
+from drf_rw_serializers.generics import ListCreateAPIView
 
 
 class StoryListCreateView(ListCreateAPIView):
@@ -16,7 +17,8 @@ class StoryListCreateView(ListCreateAPIView):
 
 class PostListCreateView(ListCreateAPIView):
     queryset = m.Post.objects.filter(is_deleted=False)
-    serializer_class = PostSerializer
+    read_serializer_class = ReadPostSerializer
+    write_serializer_class = WritePostSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]  # 인증된 유저만 가능
 
     def perform_create(self, serializer):
