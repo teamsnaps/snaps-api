@@ -4,15 +4,15 @@ from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListAPIView, U
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 
 from snapsapi.apps.core.schemas import MOCK_PRIVATE_FEED, MOCK_PUBLIC_FEED
-from snapsapi.apps.core.serializers import StorySerializer, WritePostSerializer, ReadPostSerializer, PostSerializer
-from snapsapi.apps.core import models as m
+from snapsapi.apps.posts.serializers import WritePostSerializer, ReadPostSerializer, PostSerializer
+from snapsapi.apps.posts import models as m
 from rest_framework.response import Response
 from drf_rw_serializers.generics import ListCreateAPIView
 
-
-class StoryListCreateView(ListCreateAPIView):
-    queryset = m.Story.objects.all()
-    serializer_class = StorySerializer
+#
+# class StoryListCreateView(ListCreateAPIView):
+#     queryset = m.Story.objects.all()
+#     serializer_class = StorySerializer
 
 
 class PostListCreateView(ListCreateAPIView):

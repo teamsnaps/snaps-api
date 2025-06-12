@@ -37,3 +37,6 @@ Thumbs.db
 *.egg-info/
 dist/
 build/
+
+
+memo.md

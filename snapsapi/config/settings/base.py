@@ -42,7 +42,11 @@ DJANGO_APPS = [
 
 PROJECT_APPS = [
     'snapsapi',
+    'snapsapi.apps.comments',
     'snapsapi.apps.core',
+    'snapsapi.apps.likes',
+    'snapsapi.apps.notifications',
+    'snapsapi.apps.posts',
     'snapsapi.apps.users',
 ]
 
@@ -277,7 +281,6 @@ SOCIALACCOUNT_PROVIDERS = {
     },
 }
 
-
 # # Google OAuth 2.0 Configure
 GOOGLE_OAUTH2_REDIRECT_URL = os.getenv("GOOGLE_OAUTH2_REDIRECT_URL")
 
@@ -297,4 +300,3 @@ AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
 AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME')
 
 SOCIALACCOUNT_ADAPTER = 'snapsapi.apps.users.adapters.CustomSocialAccountAdapter'
-
