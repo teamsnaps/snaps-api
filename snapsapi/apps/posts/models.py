@@ -1,6 +1,9 @@
 import uuid
 from django.db import models
-from django.contrib.auth import get_user_model
+
+from snapsapi.apps.users.models import User
+from snapsapi.apps.posts import model_managers as mm
+from snapsapi.apps.posts.model_mixins import PostMixin
 from bson.objectid import ObjectId
 import shortuuid
 
@@ -13,33 +16,50 @@ def generate_oid():
     return str(ObjectId())
 
 
-User = get_user_model()
-
-
-# Create your models here.
-class Post(models.Model):
-    uid = models.CharField(max_length=50, db_index=True, unique=True, editable=False, default=uuid.uuid4)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts')
-    images = models.JSONField(default=list, blank=True)
-    caption = models.TextField(blank=True)
+class Tag(models.Model):
+    name = models.CharField(max_length=255, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    is_deleted = models.BooleanField(default=False)
+
+    objects = mm.TagManager()
+
+    def __str__(self):
+        return self.name
+
+
+class PostImage(models.Model):
+    uid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    post = models.ForeignKey('Post', on_delete=models.CASCADE, related_name='images')
+    url = models.URLField()
+    order = models.PositiveIntegerField(default=0)  # 이미지 순서
+    created_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
+    is_deleted = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['order']
+
+    def __str__(self):
+        return f"{self.post} - {self.order}"
+
+
+class Post(models.Model, PostMixin):
+    uid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts')
+    caption = models.TextField(blank=True)
     tags = models.ManyToManyField('Tag', blank=True, related_name='posts')
     likes_count = models.PositiveIntegerField(default=0)
     comments_count = models.PositiveIntegerField(default=0)
+    is_public = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=True)
+    is_deleted = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+
+    objects = mm.PostManager()
 
     class Meta:
         ordering = ['-created_at']
 
     def __str__(self):
         return f"{self.user} - {self.caption[:20]}"
-
-
-class Tag(models.Model):
-    uid = models.CharField(default=generate_short_uuid, max_length=22, unique=True, db_index=True, editable=False)
-    name = models.CharField(max_length=50, unique=True)
-
-    def __str__(self):
-        return f": {self.name}"

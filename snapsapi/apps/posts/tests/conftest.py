@@ -3,7 +3,7 @@ import pytest
 from django.contrib.auth import get_user_model
 from rest_framework.authtoken import models as am
 from rest_framework.test import APIClient
-from snapsapi.apps.core import models as m
+from snapsapi.apps.posts import models as m
 
 
 @pytest.fixture
@@ -31,7 +31,7 @@ def superuser1():
     user_model = get_user_model()
     user = user_model.objects.create_superuser(
         'superuser1', 'superuser1@snaps.com', 'mypassword')
-    user.last_name = 'conan'
+    user.last_name = 'konan'
     am.Token.objects.get_or_create(user=user)
     return user
 
@@ -42,15 +42,30 @@ def tag1():
 
 
 @pytest.fixture
+def post_image1(tag1):
+    return m.PostImage.objects.create(
+        url="https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png",
+        order=0,
+        post=None
+    )
+
+
+@pytest.fixture
 def post1(user1, tag1):
     post = m.Post.objects.create(
         user=user1,
         caption="test caption",
-        images=[],
         is_deleted=True,
         is_active=True,
     )
+    # post.images.set(post_image1)
     post.tags.add(tag1)
+    m.PostImage.objects.create(
+        post=post,
+        url="https://example.com/image.png",
+        order=0
+    )
+
     return post
 
 
