@@ -23,7 +23,7 @@ from snapsapi.apps.users.serializers import (
 
 
 class SocialLoginView(_SocialLoginView):
-    callback_url = settings.GOOGLE_OAUTH2_REDIRECT_URL
+    callback_url = settings.GOOGLE_REDIRECT_URL
     client_class = OAuth2Client
     serializer_class = None
 
@@ -33,9 +33,9 @@ class SocialLoginView(_SocialLoginView):
         'naver': NaverOAuth2Adapter,
     }
     CALLBACK_URLS = {
-        'google': settings.GOOGLE_OAUTH2_REDIRECT_URL,
-        'kakao': settings.GOOGLE_OAUTH2_REDIRECT_URL,
-        'naver': settings.GOOGLE_OAUTH2_REDIRECT_URL,
+        'google': settings.GOOGLE_REDIRECT_URL,
+        'kakao': settings.GOOGLE_REDIRECT_URL,
+        'naver': settings.GOOGLE_REDIRECT_URL,
     }
 
     def get_serializer_class(self):

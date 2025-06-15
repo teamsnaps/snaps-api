@@ -42,7 +42,11 @@ DJANGO_APPS = [
 
 PROJECT_APPS = [
     'snapsapi',
+    'snapsapi.apps.comments',
     'snapsapi.apps.core',
+    'snapsapi.apps.likes',
+    'snapsapi.apps.notifications',
+    'snapsapi.apps.posts',
     'snapsapi.apps.users',
 ]
 
@@ -249,6 +253,7 @@ SPECTACULAR_SETTINGS = {
         }
     },
     'PREPROCESSING_HOOKS': ['snapsapi.config.spectacular_hooks.remove_dj_rest_auth_endpoints'],
+    'SERVE_INCLUDE_FORMAT_SUFFIX': False,
 }
 
 SOCIALACCOUNT_PROVIDERS = {
@@ -277,9 +282,8 @@ SOCIALACCOUNT_PROVIDERS = {
     },
 }
 
-
 # # Google OAuth 2.0 Configure
-GOOGLE_OAUTH2_REDIRECT_URL = os.getenv("GOOGLE_OAUTH2_REDIRECT_URL")
+GOOGLE_REDIRECT_URL = os.getenv("GOOGLE_REDIRECT_URL")
 
 # allauth/dj-rest-auth 표준 설정
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None  # username 필드 사용 안 함(선택)
@@ -293,8 +297,8 @@ ACCOUNT_LOGIN_METHODS = {'email'}
 
 AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
-AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
+AWS_S3_STATIC_BUCKET_NAME = os.getenv('AWS_S3_STATIC_BUCKET_NAME')
+AWS_S3_MEDIA_BUCKET_NAME = os.getenv('AWS_S3_MEDIA_BUCKET_NAME')
 AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME')
-
+AWS_REGION = os.getenv('AWS_S3_REGION_NAME')
 SOCIALACCOUNT_ADAPTER = 'snapsapi.apps.users.adapters.CustomSocialAccountAdapter'
-
