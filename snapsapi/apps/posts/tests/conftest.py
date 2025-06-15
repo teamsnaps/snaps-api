@@ -51,6 +51,25 @@ def post_image1(tag1):
 
 
 @pytest.fixture
+def post_of_user1(user1, tag1):
+    post = m.Post.objects.create(
+        user=user1,
+        caption="test caption",
+        is_deleted=True,
+        is_active=True,
+    )
+    # post.images.set(post_image1)
+    post.tags.add(tag1)
+    m.PostImage.objects.create(
+        post=post,
+        url="https://example.com/image.png",
+        order=0
+    )
+
+    return post
+
+
+@pytest.fixture
 def post1(user1, tag1):
     post = m.Post.objects.create(
         user=user1,

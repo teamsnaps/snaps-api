@@ -7,17 +7,13 @@ import shortuuid
 from snapsapi.apps.posts.models import Post
 
 
-def generate_short_uuid():
-    return shortuuid.uuid()
-
-
-def generate_oid():
-    return str(ObjectId())
-
+def generate_uuid():
+    return uuid.uuid4()
 
 User = get_user_model()
 
 class Comment(models.Model):
+    uid = models.UUIDField(primary_key=True, default=generate_uuid, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')
     content = models.TextField()

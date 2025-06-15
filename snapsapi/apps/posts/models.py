@@ -4,19 +4,15 @@ from django.db import models
 from snapsapi.apps.users.models import User
 from snapsapi.apps.posts import model_managers as mm
 from snapsapi.apps.posts.model_mixins import PostMixin
-from bson.objectid import ObjectId
-import shortuuid
+# from bson.objectid import ObjectId
+# import shortuuid
 
-
-def generate_short_uuid():
-    return shortuuid.uuid()
-
-
-def generate_oid():
-    return str(ObjectId())
+def generate_uuid():
+    return uuid.uuid4()
 
 
 class Tag(models.Model):
+    uid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
     name = models.CharField(max_length=255, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -27,7 +23,7 @@ class Tag(models.Model):
 
 
 class PostImage(models.Model):
-    uid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    uid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
     post = models.ForeignKey('Post', on_delete=models.CASCADE, related_name='images')
     url = models.URLField()
     order = models.PositiveIntegerField(default=0)  # 이미지 순서
@@ -43,7 +39,7 @@ class PostImage(models.Model):
 
 
 class Post(models.Model, PostMixin):
-    uid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    uid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts')
     caption = models.TextField(blank=True)
     tags = models.ManyToManyField('Tag', blank=True, related_name='posts')
