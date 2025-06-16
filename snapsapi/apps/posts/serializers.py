@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from apps.users.serializers import UserSerializer
+from snapsapi.apps.users.serializers import UserSerializer
 from snapsapi.apps.posts.models import Post, PostImage, Tag
 from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError as DjangoValidationError

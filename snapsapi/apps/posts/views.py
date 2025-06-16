@@ -1,6 +1,6 @@
 from django.utils.decorators import method_decorator
-from rest_framework.generics import UpdateAPIView, RetrieveUpdateDestroyAPIView, ListCreateAPIView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.generics import UpdateAPIView, RetrieveUpdateDestroyAPIView, ListCreateAPIView, ListAPIView
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework import status
 from django.conf import settings
@@ -20,7 +20,7 @@ from snapsapi.apps.posts.utils import create_presigned_post, build_object_name
 from drf_rw_serializers.generics import GenericAPIView, UpdateAPIView
 from snapsapi.apps.posts.models import Post
 from django.db import transaction
-
+from snapsapi.apps.posts.schemas import MOCK_PRIVATE_FEED, MOCK_PUBLIC_FEED
 
 @method_decorator(transaction.atomic, name='dispatch')
 class PostCreateView(GenericAPIView):
@@ -183,3 +183,13 @@ class PresignedURLView(GenericAPIView):
             })
 
         return Response({"results": results})
+
+
+class FeedMockListView(ListAPIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return Response(MOCK_PRIVATE_FEED)
+        else:
+            return Response(MOCK_PUBLIC_FEED)
