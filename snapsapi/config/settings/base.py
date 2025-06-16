@@ -155,7 +155,7 @@ USE_TZ = True
 
 # STATIC_URL = '/static/'
 # STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-STATIC_URL = 'https://d1t1bja8s4foiy.cloudfront.net/static/'
+STATIC_URL = 'https://dxufur2po515r.cloudfront.net/static/'
 STATIC_ROOT = None
 STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
