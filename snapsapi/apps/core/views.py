@@ -3,7 +3,7 @@ from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListAPIView, U
     RetrieveUpdateAPIView
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 
-from snapsapi.apps.posts.schemas import MOCK_PRIVATE_FEED, MOCK_PUBLIC_FEED
+
 from snapsapi.apps.posts.serializers import PostCreateSerializer, PostUpdateSerializer
 from snapsapi.apps.posts import models as m
 from rest_framework.response import Response
@@ -38,11 +38,3 @@ class PostDetailView(UpdateAPIView):
 
 
 
-class FeedMockListView(ListAPIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
-
-    def get(self, request, *args, **kwargs):
-        if request.user.is_authenticated:
-            return Response(MOCK_PRIVATE_FEED)
-        else:
-            return Response(MOCK_PUBLIC_FEED)
