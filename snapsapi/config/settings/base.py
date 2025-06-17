@@ -155,7 +155,7 @@ USE_TZ = True
 
 # STATIC_URL = '/static/'
 # STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-STATIC_URL = 'https://dxufur2po515r.cloudfront.net/static/'
+STATIC_URL = 'https://da5poael7popz.cloudfront.net/static/'
 STATIC_ROOT = None
 STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
@@ -295,10 +295,17 @@ ACCOUNT_EMAIL_VERIFICATION = "optional"  # or "mandatory"
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
 ACCOUNT_LOGIN_METHODS = {'email'}
 
-AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
-AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
+
 AWS_S3_STATIC_BUCKET_NAME = os.getenv('AWS_S3_STATIC_BUCKET_NAME')
 AWS_S3_MEDIA_BUCKET_NAME = os.getenv('AWS_S3_MEDIA_BUCKET_NAME')
-AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME')
+
 AWS_REGION = os.getenv('AWS_S3_REGION_NAME')
 SOCIALACCOUNT_ADAPTER = 'snapsapi.apps.users.adapters.CustomSocialAccountAdapter'
+
+# django-storages[boto3] configuration
+AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
+# AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_S3_STATIC_BUCKET_NAME')
+AWS_STORAGE_BUCKET_NAME = 'snapsapi-app-storage' # Todo must edit env variable
+AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME')
+# AWS_S3_CUSTOM_DOMAIN    = 'storage.snaps.show'       # CloudFront 커스텀 도메인
