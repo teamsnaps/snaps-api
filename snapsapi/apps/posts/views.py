@@ -144,7 +144,7 @@ class PresignedURLView(GenericAPIView):
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
-        summary="게시글 이미지 업로드 URL 생성",
+        summary="게시글 이미지 업로  드 URL 생성",
         description="게시글 이미지 업로드 URL 생성을 요청합니다.",
         request=PresignedURLRequestSerializer,
         examples=PRESIGNED_POST_URL_REQUEST_EXAMPLE,
