@@ -23,6 +23,7 @@ from drf_spectacular.views import (
     SpectacularRedocView,
 )
 from snapsapi.apps.core.views import home
+
 urlpatterns = [
     path('', home, name='home'),
     path('admin/', admin.site.urls),
@@ -31,13 +32,7 @@ urlpatterns = [
     path('dj-rest-auth/', include('dj_rest_auth.urls')),
     path('users/', include('snapsapi.apps.users.urls')),
     path('users/', include('allauth.urls')),
-
-    # OpenAPI 3 스키마(JSON)
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
-
-    # Swagger UI
-    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
-
-    # ReDoc UI (원한다면)
-    path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
+    path('api/swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('api/docs/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
 ]

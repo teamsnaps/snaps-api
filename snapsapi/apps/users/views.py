@@ -7,6 +7,7 @@ from dj_rest_auth.registration.views import (
     SocialLoginView as _SocialLoginView,
     SocialConnectView as _SocialConnectView
 )
+from django.contrib.auth import get_user_model
 from drf_spectacular.utils import extend_schema, OpenApiResponse, extend_schema_view, inline_serializer
 from rest_framework import status
 from rest_framework.response import Response
@@ -22,10 +23,13 @@ from snapsapi.apps.users.serializers import (
 )
 
 
+User = get_user_model()
+
 class SocialLoginView(_SocialLoginView):
     callback_url = settings.GOOGLE_REDIRECT_URL
     client_class = OAuth2Client
     serializer_class = None
+    queryset = User.objects.filter(is_active=True, is_deleted=False)
 
     PROVIDER_ADAPTERS = {
         'google': GoogleOAuth2Adapter,

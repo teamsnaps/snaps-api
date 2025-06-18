@@ -8,19 +8,24 @@ import boto3
 from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiExample
 
 from snapsapi.apps.posts.serializers import PostCreateSerializer, PresignedURLRequestSerializer, PostUpdateSerializer, \
-    PostDeleteSerializer, PostReadSerializer
+    PostDeleteSerializer, PostReadSerializer, PostListSerializer
 from snapsapi.apps.posts.schemas import (
     POST_CREATE_REQUEST_EXAMPLE,
     POST_CREATE_RESPONSE_EXAMPLE,
     PRESIGNED_POST_URL_RESPONSE_EXAMPLE,
     PRESIGNED_POST_URL_REQUEST_EXAMPLE,
 )
+from django.db.models import Count
+# 1. 방금 만든 Pagination 클래스를 import 합니다.
+from snapsapi.apps.core.pagination import StandardResultsSetPagination
+from django.db import transaction
 
 from snapsapi.apps.posts.utils import create_presigned_post, build_object_name
 from drf_rw_serializers.generics import GenericAPIView, UpdateAPIView
 from snapsapi.apps.posts.models import Post
 from django.db import transaction
 from snapsapi.apps.posts.schemas import MOCK_PRIVATE_FEED, MOCK_PUBLIC_FEED
+
 
 @method_decorator(transaction.atomic, name='dispatch')
 class PostCreateView(GenericAPIView):
@@ -67,7 +72,33 @@ class PostListCreateView(ListCreateAPIView):
     # post creation fails (e.g., attaching images or tags), the entire transaction
     # will be rolled back, ensuring data consistency.
     # """
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    pagination_class = StandardResultsSetPagination
+
+
+    def get_queryset(self):
+        return (
+            Post.objects.filter(is_deleted=False)
+            # .annotate(
+            #     likes_count=Count('likes', distinct=True),
+            #     comments_count=Count('comments', distinct=True))
+            .prefetch_related(
+                'user__profile',
+                'images',
+                'tags'
+            )
+            .order_by('-created_at')
+        )
+
+    def get_serializer_class(self):
+        """
+        요청 메서드에 따라 사용할 Serializer를 동적으로 결정합니다.
+        """
+        if self.request.method == 'POST':
+            # 생성(POST) 요청 시에는 PostCreateSerializer를 사용합니다.
+            return PostCreateSerializer
+        # 목록 조회(GET) 요청 시에는 PostListSerializer를 사용합니다.
+        return PostListSerializer
 
     @extend_schema(
         summary="게시글 작성",
@@ -94,6 +125,10 @@ class PostListCreateView(ListCreateAPIView):
             return Response(serializer.to_representation(post),
                             status=status.HTTP_201_CREATED)  # Todo: attach read serializer
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def get(self, request, *args, **kwargs):
+        # ListCreateAPIView의 기본 list 동작을 그대로 사용합니다.
+        return super().get(request, *args, **kwargs)
 
 
 @method_decorator(transaction.atomic, name='dispatch')
