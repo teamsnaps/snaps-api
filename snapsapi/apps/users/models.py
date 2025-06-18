@@ -22,7 +22,7 @@ class User(AbstractUser):
     )
     email = models.EmailField(db_index=True, null=False, blank=False)
     phone_number = models.CharField(max_length=30, null=False, blank=False)
-    deleted = models.BooleanField(default=False, null=False)
+    is_deleted = models.BooleanField(default=False, null=False)
     deleted_at = models.DateTimeField(null=True, blank=True)
     username = models.CharField(max_length=50, unique=True, default=generate_username_with_short_uuid)
 
