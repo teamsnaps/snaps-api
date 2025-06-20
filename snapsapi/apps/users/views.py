@@ -8,18 +8,22 @@ from dj_rest_auth.registration.views import (
     SocialConnectView as _SocialConnectView
 )
 from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema, OpenApiResponse, extend_schema_view, inline_serializer
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 import json
 from rest_framework import serializers as s
+
+from snapsapi.apps.core.models import Follow
 from snapsapi.apps.users.schemas import *
 
 from snapsapi.apps.users.serializers import (
     SocialLoginWriteSerializer,
     SocialLoginReadSerializer,
-    SocialLoginResponseSerializer,
+    SocialLoginResponseSerializer, FollowResponseSerializer,
 )
 
 
@@ -97,6 +101,46 @@ class SocialLoginView(_SocialLoginView):
                 {"detail": "OAuth2 인증에 실패했습니다. 유효한 access_token을 제공해주세요."},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
+class FollowToggleView(APIView):
+    """
+    특정 유저에 대한 팔로우/언팔로우를 처리하는 토글 방식의 View입니다.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        # URL에서 팔로우할 대상 유저의 uid를 가져옵니다.
+        user_to_follow_uid = self.kwargs.get('user_uid')
+        user_to_follow = get_object_or_404(User, uid=user_to_follow_uid)
+
+        follower = request.user
+
+        # 스스로를 팔로우하는 것을 방지합니다.
+        if follower == user_to_follow:
+            return Response({"detail": "You cannot follow yourself."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # get_or_create를 사용하여 팔로우 관계를 가져오거나 생성합니다.
+        # created는 새로 생성되었으면 True, 이미 존재했으면 False를 반환합니다.
+        follow, created = Follow.objects.get_or_create(
+            follower=follower,
+            following=user_to_follow
+        )
+
+        if not created:
+            # 이미 팔로우 관계가 존재했다면, 삭제하여 '언팔로우'를 수행합니다.
+            follow.delete()
+
+        # DB에서 최신 카운트 정보를 가져오기 위해 객체를 새로고침합니다.
+        user_to_follow.refresh_from_db()
+
+        serializer = FollowResponseSerializer({
+            'is_following': created,  # 생성되었으면 True(팔로우 성공), 아니면 False(언팔로우 성공)
+            'followers_count': user_to_follow.followers_count,
+            'following_count': user_to_follow.following_count
+        })
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 
 class GoogleConnectView(_SocialConnectView):

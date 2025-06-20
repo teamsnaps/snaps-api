@@ -26,6 +26,9 @@ class User(AbstractUser):
     deleted_at = models.DateTimeField(null=True, blank=True)
     username = models.CharField(max_length=50, unique=True, default=generate_username_with_short_uuid)
 
+    followers_count = models.PositiveIntegerField(default=0, db_index=True)
+    following_count = models.PositiveIntegerField(default=0, db_index=True)
+
     # username = models.CharField(
     #     _("username"),
     #     max_length=150,

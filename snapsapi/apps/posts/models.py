@@ -3,7 +3,9 @@ from django.db import models
 
 from snapsapi.apps.users.models import User
 from snapsapi.apps.posts import model_managers as mm
-from snapsapi.apps.posts.model_mixins import PostMixin
+from snapsapi.apps.posts import model_mixins as mx
+
+
 # from bson.objectid import ObjectId
 # import shortuuid
 
@@ -38,7 +40,7 @@ class PostImage(models.Model):
         return f"{self.post} - {self.order}"
 
 
-class Post(models.Model, PostMixin):
+class Post(models.Model, mx.PostMixin):
     uid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts')
     caption = models.TextField(blank=True)
