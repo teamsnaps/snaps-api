@@ -134,7 +134,7 @@ class PostListCreateView(ListCreateAPIView):
 @method_decorator(transaction.atomic, name='dispatch')
 class PostDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Post.objects.filter(is_deleted=False)
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedOrReadOnly]
     lookup_field = 'uid'
 
     http_method_names = ['get', 'patch', 'delete', 'head', 'options']

@@ -1,9 +1,15 @@
+from django.contrib.auth import get_user, get_user_model
 from rest_framework import serializers
 
 from snapsapi.apps.users.serializers import UserSerializer
 from snapsapi.apps.posts.models import Post, PostImage, Tag
+from snapsapi.apps.likes.models import PostLike
 from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError as DjangoValidationError
+
+
+
+user = get_user_model()
 
 
 class PostImageURLSerializer(serializers.ModelSerializer):
@@ -210,61 +216,68 @@ class PostUpdateSerializer(serializers.ModelSerializer):
         }
 
 
+# --- User 정보를 위한 간단한 Serializer ---
+# 이 Serializer는 Post 안에 작성자 정보를 표현하기 위해 사용됩니다.
+class UserInfoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = user
+        fields = ['uid', 'username'] # 필요에 따라 'profile_image' 등 추가 가능
+
+# --- PostReadSerializer 수정 ---
 class PostReadSerializer(serializers.ModelSerializer):
     """
-    게시물 상세 조회(GET 요청)를 위한 시리얼라이저입니다.
-    읽기 전용(read-only)이며, 게시물과 관련된 모든 주요 정보를 포함합니다.
+    게시물 상세 조회(GET)를 위한 최적화된 Serializer입니다.
+    Post 모델의 필드와 연관된 정보를 효율적으로 반환합니다.
     """
-    # 1. 작성자 정보 (Nested Serializer)
-    user = UserSerializer(read_only=True)
+    # 1. Nested Serializer를 사용하여 작성자 정보를 포함시킵니다.
+    user = UserInfoSerializer(read_only=True)
 
-    # 2. 연관된 이미지와 태그 목록 (SerializerMethodField 사용)
+    # 2. ManyToMany 관계인 태그와 이미지를 처리합니다.
+    #    - images: SerializerMethodField를 사용해 이미지 URL 목록을 반환
+    #    - tags: SlugRelatedField를 사용해 태그 이름 목록을 간단히 반환
     images = serializers.SerializerMethodField()
-    tags = serializers.SerializerMethodField()
+    tags = serializers.SlugRelatedField(many=True, read_only=True, slug_field='name')
 
-    # 3. 상호작용 정보 (좋아요)
-    like_count = serializers.SerializerMethodField(help_text="좋아요 개수")
-    is_liked = serializers.SerializerMethodField(help_text="현재 사용자가 좋아요를 눌렀는지 여부")
+    # 3. 현재 로그인한 사용자의 좋아요 여부를 확인하기 위한 필드입니다.
+    is_liked = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
+        # 모델에 정의된 필드들을 명시적으로 포함합니다.
         fields = [
             'uid',
             'user',
             'caption',
-            'images',
-            'tags',
-            'like_count',
-            'is_liked',
+            'images',          # 메서드로 처리
+            'tags',            # SlugRelatedField로 처리
+            'likes_count',     # 모델 필드 직접 사용
+            'comments_count',  # 모델 필드 직접 사용
+            'is_liked',        # 메서드로 처리
+            'is_public',
             'created_at',
             'updated_at',
         ]
+        read_only_fields = fields # 모든 필드를 읽기 전용으로 설정
 
-    def get_images(self, post_instance):
-        """Post에 연결된 이미지들의 URL 목록을 반환합니다."""
-        return [image.url for image in post_instance.images.all()]
-
-    def get_tags(self, post_instance):
-        """Post에 연결된 태그들의 이름 목록을 반환합니다."""
-        return [tag.name for tag in post_instance.tags.all()]
-
-    def get_like_count(self, post_instance):
-        """Post의 좋아요 개수를 반환합니다."""
-        # Post 모델에 'likes'라는 related_name이 있다고 가정합니다.
-        # 만약 PostLike 모델에서 related_name을 설정하지 않았다면
-        # post_instance.postlike_set.count() 로 사용할 수 있습니다.
-        return post_instance.likes.count()
-
-    def get_is_liked(self, post_instance):
+    def get_images(self, post):
         """
-        요청을 보낸 사용자가 이 Post에 좋아요를 눌렀는지 확인합니다.
+        Post 객체에 연결된 PostImage 객체들의 URL 목록을 반환합니다.
+        prefetch_related와 함께 사용될 때 효율적입니다.
         """
-        request_user = self.context.get('request').user
-        # 로그인하지 않은 사용자는 항상 False를 반환합니다.
-        if not request_user or not request_user.is_authenticated:
-            return False
-        # 'likes' related_name과 user를 사용하여 존재 여부를 확인합니다.
-        return post_instance.likes.filter(user=request_user).exists()
+        # PostImage 모델에 'post' ForeignKey가 있고, 'url' 필드가 있다고 가정합니다.
+        # 이 Post에 연결된 모든 이미지들을 가져옵니다.
+        return [image.url for image in post.images.all()]
+
+    def get_is_liked(self, post):
+        """
+        Context로 전달받은 request의 user가 현재 post 객체에
+        좋아요를 눌렀는지 여부를 True/False로 반환합니다.
+        """
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            # PostLike 모델에서 (user, post) 쌍이 존재하는지 확인합니다.
+            return PostLike.objects.filter(post=post, user=request.user).exists()
+        return False
 
 
 class PostDeleteSerializer(serializers.Serializer):
