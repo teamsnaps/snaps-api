@@ -28,7 +28,7 @@ class CommentListCreateView(ListCreateAPIView):
         """
         post_uid = self.kwargs['uid']
         # select_related와 prefetch_related로 DB 쿼리 성능을 최적화합니다.
-        return Comment.objects.filter(post__uid=post_uid, parent__isnull=True) \
+        return Comment.objects.filter(is_deleted=False, post__uid=post_uid, parent__isnull=True) \
             .select_related('user', 'user__profile') \
             .prefetch_related('replies')
 
@@ -70,7 +70,6 @@ class CommentListCreateView(ListCreateAPIView):
 
         # 게시물이 삭제되지 않았다면, 기본 create 동작을 수행합니다.
         return super().create(request, *args, **kwargs)
-
 
 
 class CommentDetailView(RetrieveUpdateDestroyAPIView):
