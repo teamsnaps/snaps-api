@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.db import transaction
 from django.utils.decorators import method_decorator
+from django.utils.translation import gettext_lazy as _
 
 from rest_framework.generics import GenericAPIView, RetrieveUpdateDestroyAPIView, ListAPIView, ListCreateAPIView
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
@@ -25,7 +26,6 @@ from snapsapi.apps.posts.schemas import (
 from snapsapi.apps.core.pagination import StandardResultsSetPagination
 from snapsapi.apps.posts.models import Post
 from snapsapi.apps.posts.utils import create_presigned_post, build_object_name
-from snapsapi.apps.posts.schemas import MOCK_PRIVATE_FEED, MOCK_PUBLIC_FEED
 
 
 @method_decorator(transaction.atomic, name='dispatch')
@@ -56,24 +56,23 @@ class PostListCreateView(ListCreateAPIView):
     def get_serializer_class(self):
         return PostCreateSerializer if self.request.method == 'POST' else PostReadSerializer
 
-    # @extend_schema(
-    #     summary="게시글 작성",
-    #     description="여러 이미지와 태그를 포함한 게시글을 생성합니다.",
-    #     request=PostCreateSerializer,
-    #     examples=POST_CREATE_REQUEST_EXAMPLE,
-    #     responses={
-    #         status.HTTP_201_CREATED: OpenApiResponse(
-    #             response=PostCreateSerializer,
-    #             description="게시글 등록 성공",
-    #             examples=POST_CREATE_RESPONSE_EXAMPLE,
-    #         ),
-    #         status.HTTP_400_BAD_REQUEST: OpenApiResponse(
-    #             description="잘못된 요청"
-    #         ),
-    #     },
-    #     auth=None,
-    #     tags=["Posts"],
-    # )
+    @extend_schema(
+        summary=_("새 게시글 작성"),
+        description=_("사용자는 이 엔드포인트를 통해 새로운 게시글을 작성할 수 있습니다. 게시글에는 여러 개의 이미지, 캡션(내용), 그리고 태그를 포함할 수 있습니다."),
+        request=PostCreateSerializer,
+        examples=POST_CREATE_REQUEST_EXAMPLE,
+        responses={
+            status.HTTP_201_CREATED: OpenApiResponse(
+                response=PostReadSerializer,
+                description=_("게시글이 성공적으로 생성되었습니다. 응답 본문에는 생성된 게시글의 상세 정보가 포함됩니다."),
+                examples=POST_CREATE_RESPONSE_EXAMPLE,
+            ),
+            status.HTTP_400_BAD_REQUEST: OpenApiResponse(
+                description=_("요청 형식이 올바르지 않습니다. 필수 필드가 누락되었거나 데이터 형식이 잘못된 경우 이 오류가 발생할 수 있습니다.")
+            ),
+        },
+        tags=["Posts"],
+    )
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data, context={"request": request})
         if serializer.is_valid(raise_exception=True):
@@ -172,13 +171,3 @@ class PresignedURLView(GenericAPIView):
             })
 
         return Response({"results": results})
-
-
-class FeedMockListView(ListAPIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
-
-    def get(self, request, *args, **kwargs):
-        if request.user.is_authenticated:
-            return Response(MOCK_PRIVATE_FEED)
-        else:
-            return Response(MOCK_PUBLIC_FEED)

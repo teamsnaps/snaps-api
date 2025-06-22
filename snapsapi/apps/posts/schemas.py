@@ -1,116 +1,65 @@
-from drf_spectacular.utils import OpenApiExample
 from rest_framework import status
-
-# ✅ Request Body Example
-MOCK_PRIVATE_FEED = [
-    {
-        "metadata": {
-            "post_uid": "kYX36S...",
-            "user_uid": "QiRSZt..."
-        },
-        "profile": {
-            "username": "panibottle",
-            "image": "https://mybucket.s3.amazonaws.com/..."
-        },
-        "images": [
-            {
-                "url": "/test_image/private_feed_image/IMG_1408.JPG"
-            },
-            {
-                "url": "/test_image/private_feed_image/IMG_1550.jpeg"
-            },
-            {
-                "url": "/test_image/private_feed_image/IMG_1441.jpeg"
-            },
-            {
-                "url": "/test_image/private_feed_image/IMG_1896.jpeg"
-            },
-            {
-                "url": "/test_image/private_feed_image/IMG_2209.JPG"
-            },
-            {
-                "url": "/test_image/private_feed_image/IMG_2211.JPG"
-            }
-        ],
-        "context": {
-            "username": "panibottle",
-            "caption": "MOCK_PRIVATE_FEED",
-            "tags": ["여행", "일본여행", "오사카", "교토"]
-        },
-        "created_at": "2024-06-02T09:16:21.654Z",
-        "updated_at": "2024-06-11T07:23:29.139Z",
-        "likes_count": 0,
-        "comments_count": 0
-    }
-]
-
-MOCK_PUBLIC_FEED = [
-    {
-        "metadata": {
-            "post_uid": "kYX36S...",
-            "user_uid": "QiRSZt..."
-        },
-        "profile": {
-            "username": "panibottle",
-            "image": "https://mybucket.s3.amazonaws.com/..."
-        },
-        "images": [
-            {
-                "url": "/test_image/public_feed_image/IMG_0258.jpeg"
-            },
-            {
-                "url": "/test_image/public_feed_image/IMG_0265.jpeg"
-            },
-            {
-                "url": "/test_image/public_feed_image/IMG_0270.jpeg"
-            },
-            {
-                "url": "/test_image/public_feed_image/IMG_0272.jpeg"
-            },
-            {
-                "url": "/test_image/public_feed_image/IMG_0281.jpeg"
-            },
-            {
-                "url": "/test_image/public_feed_image/IMG_5425.jpeg"
-            },
-        ],
-        "context": {
-            "username": "panibottle",
-            "caption": "MOCK_PUBLIC_FEED",
-            "tags": ["여행", "일본여행", "오사카", "교토"]
-        },
-        "created_at": "2024-06-02T09:16:21.654Z",
-        "updated_at": "2024-06-11T07:23:29.139Z",
-        "likes_count": 0,
-        "comments_count": 0
-    }
-]
+from drf_spectacular.utils import OpenApiExample
 
 POST_CREATE_REQUEST_EXAMPLE = [
     OpenApiExample(
         "성공 예시",
         value={
-            "caption": "여러장 사진 업로드!",
             "images": [
-                "https://.../image1.jpg",
-                "https://.../image2.jpg"
+                {
+                    "url": "https://example.com/path/to/post/image1.jpg"
+                },
+                {
+                    "url": "https://example.com/path/to/post/image2.jpg"
+                }
             ],
-            "tags": ["바다", "여행", "산책"]
+            "caption": "Enjoying a beautiful day out! Here are some great photos.",
+            "tags": [
+                "nature",
+                "photography",
+                "travel"
+            ]
         },
         status_codes=[str(status.HTTP_201_CREATED)],
     )
 ]
+
 POST_CREATE_RESPONSE_EXAMPLE = [
     OpenApiExample(
         "성공 예시",
         value={
-            "uid": "d0e914a4-3b3c-413a-a994-efb540a3c871",
-            "caption": "여러장 사진 업로드!",
+            "metadata": {
+                "post_uid": "a1b2c3d4-e5f6-7890-1234-567890abcdef",
+                "user_uid": "f0e9d8c7-b6a5-4321-fedc-ba9876543210"
+            },
+            "user": {
+                "uid": "f0e9d8c7-b6a5-4321-fedc-ba9876543210",
+                "username": "sample_user",
+                "image": "https://example.com/path/to/profile_image.jpg",
+                "bio": "This is a sample bio description for a user profile.",
+                "is_me": False,
+                "is_following": True
+            },
             "images": [
-                "https://.../image1.jpg",
-                "https://.../image2.jpg"
+                {
+                    "url": "https://example.com/path/to/post/image1.jpg"
+                },
+                {
+                    "url": "https://example.com/path/to/post/image2.jpg"
+                }
             ],
-            "tags": ["바다", "여행", "산책"]
+            "caption": "Enjoying a beautiful day out! Here are some great photos.",
+            "tags": [
+                "nature",
+                "photography",
+                "travel"
+            ],
+            "likes_count": 12853,
+            "comments_count": 312,
+            "is_liked": False,
+            "is_public": True,
+            "created_at": "2025-06-15T10:30:00Z",
+            "updated_at": "2025-06-15T10:35:00Z"
         },
         status_codes=[str(status.HTTP_201_CREATED)],
     )
@@ -133,6 +82,7 @@ PRESIGNED_POST_URL_REQUEST_EXAMPLE = [
         }
     )
 ]
+
 PRESIGNED_POST_URL_RESPONSE_EXAMPLE = [
     OpenApiExample(
         "성공 예시",

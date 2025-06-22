@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user, get_user_model
+from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from snapsapi.apps.users.serializers import UserSerializer, UserProfileSerializer
@@ -15,6 +16,11 @@ class PostImageURLSerializer(serializers.ModelSerializer):
         model = PostImage
         # PostImage 모델에 'url' 필드가 있다고 가정합니다.
         fields = ['url']
+
+
+class ImageURLSerializer(serializers.Serializer):
+    """A simple serializer to validate objects with a 'url' key."""
+    url = serializers.URLField()
 
 
 # GET 요청 (목록 조회) 시 사용할 메인 Serializer
@@ -83,53 +89,28 @@ class PostListSerializer(serializers.ModelSerializer):
 class PostCreateSerializer(serializers.Serializer):
     caption = serializers.CharField(
         allow_blank=True,
-        help_text="게시글 내용"
+        help_text=_("게시글에 대한 설명을 자유롭게 작성해주세요. 비워두어도 괜찮습니다.")
     )
-    images = serializers.ListField(
-        child=serializers.URLField(),
+    images = ImageURLSerializer(
+        many=True,
         write_only=True,
-        help_text="이미지의 URL 리스트"
+        help_text=_("게시글에 추가할 이미지 목록입니다. `[{'url': 'https://...'}]` 형식의 배열이어야 합니다.")
     )
     tags = serializers.ListField(
         child=serializers.CharField(max_length=50),
         allow_empty=True,
         write_only=True,
-        help_text="태그 문자열 리스트"
+        help_text=_("게시글을 분류할 태그를 입력합니다. 예: `['여행', '풍경']`")
     )
 
     def create(self, validated_data):
         user = self.context['request'].user
         caption = validated_data.get('caption', '')
-        images = validated_data.get('images', [])
+        images = [item['url'] for item in validated_data.get('images', [])]
         tags = validated_data.get('tags', [])
 
-        # Create a Post object
         post = Post.objects.create_post(user, caption, images, tags)
-        # post = Post.objects.create(user=user, caption=caption)
-        #
-        # # Save images
-        # post_images = [
-        #     PostImage(post=post, url=url, order=i)
-        #     for i, url in enumerate(images)
-        # ]
-        # PostImage.objects.bulk_create(post_images)
-        #
-        # # Tag processing (get if it already exists, create if it doesn't exist)
-        # tag_objs = []
-        # for tag_name in tags:
-        #     tag_obj, _ = Tag.objects.get_or_create(name=tag_name)
-        #     tag_objs.append(tag_obj)
-        # post.tags.set(tag_objs)
-
         return post
-
-    def to_representation(self, instance):
-        return {
-            "uid": str(instance.uid),
-            "caption": instance.caption,
-            "images": [img.url for img in instance.images.all()],
-            "tags": [tag.name for tag in instance.tags.all()]
-        }
 
 
 class PostUpdateSerializer(serializers.ModelSerializer):
@@ -220,7 +201,6 @@ class UserInfoSerializer(serializers.ModelSerializer):
     class Meta:
         model = user
         fields = ['uid', 'username']  # 필요에 따라 'profile_image' 등 추가 가능
-
 
 
 class PostReadSerializer(serializers.ModelSerializer):
