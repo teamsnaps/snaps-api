@@ -10,7 +10,7 @@ app_name = 'posts'
 urlpatterns = []
 
 urlpatterns += [
-    path('', views.PostListCreateView.as_view(), name='posts-list-create'),
+    path('', views.PostListCreateView.as_view(), name='posts-list-create'), # Todo: 게시글 작성 200 OK serializer 포멧을 피드보기 포멧이랑 일치시키기
     path('<uuid:uid>/', views.PostDetailView.as_view(), name='posts-detail'),
     path('<uuid:uid>/comments/', CommentListCreateView.as_view(), name='posts-create-comment'),
     path('<uuid:uid>/likes/', PostLikeToggleView.as_view(), name='posts-create-comment'),

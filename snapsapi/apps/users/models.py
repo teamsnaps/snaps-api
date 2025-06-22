@@ -1,5 +1,9 @@
+from datetime import timedelta, datetime, UTC
+
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.core.validators import MinLengthValidator
+
 from bson.objectid import ObjectId
 import shortuuid
 
@@ -11,9 +15,11 @@ def generate_short_uuid():
 def generate_oid():
     return str(ObjectId())
 
+
 def generate_username_with_short_uuid():
     suid = generate_short_uuid()[:6]
     return f"User_{suid}"
+
 
 class User(AbstractUser):
     uid = models.CharField(
@@ -24,7 +30,21 @@ class User(AbstractUser):
     phone_number = models.CharField(max_length=30, null=False, blank=False)
     is_deleted = models.BooleanField(default=False, null=False)
     deleted_at = models.DateTimeField(null=True, blank=True)
-    username = models.CharField(max_length=50, unique=True, default=generate_username_with_short_uuid)
+    username = models.CharField(
+        max_length=30,  # Set max length to 30 characters
+        unique=True,
+        default=generate_username_with_short_uuid,
+        validators=[MinLengthValidator(5)]  # Add a validator for minimum length of 5
+    )
+    is_username_changed = models.BooleanField(
+        default=False,
+        help_text="Becomes True if the user has changed their initial username at least once."
+    )
+    username_last_changed_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Stores the timestamp of the last username change."
+    )
 
     followers_count = models.PositiveIntegerField(default=0, db_index=True)
     following_count = models.PositiveIntegerField(default=0, db_index=True)
@@ -45,9 +65,22 @@ class User(AbstractUser):
     def __str__(self):
         return self.username
 
+    def can_change_username(self):
+        """
+        Checks if the user is allowed to change their username.
+        Returns True if 30 days have passed since the last change, or if it has never been changed.
+        """
+        if not self.is_username_changed:
+            return True
+        if self.username_last_changed_at:
+            # Check if 30 days have passed
+            return datetime.now(UTC) > self.username_last_changed_at + timedelta(days=30)
+        # This case should ideally not be reached if is_username_changed is True, but acts as a fallback.
+        return True
+
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     bio = models.TextField(blank=True)
     # image = models.ImageField(upload_to='profiles/', blank=True, null=True)
-    image = models.JSONField(default=list, blank=True)
+    image = models.URLField(blank=True)

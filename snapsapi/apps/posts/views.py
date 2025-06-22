@@ -1,67 +1,31 @@
+from django.conf import settings
+from django.db import transaction
 from django.utils.decorators import method_decorator
-from rest_framework.generics import UpdateAPIView, RetrieveUpdateDestroyAPIView, ListCreateAPIView, ListAPIView
+
+from rest_framework.generics import GenericAPIView, RetrieveUpdateDestroyAPIView, ListAPIView, ListCreateAPIView
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework import status
-from django.conf import settings
-import boto3
+
 from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiExample
 
-from snapsapi.apps.posts.serializers import PostCreateSerializer, PresignedURLRequestSerializer, PostUpdateSerializer, \
-    PostDeleteSerializer, PostReadSerializer, PostListSerializer
+from snapsapi.apps.posts.serializers import (
+    PostCreateSerializer,
+    PostReadSerializer,
+    PostUpdateSerializer,
+    PostDeleteSerializer,
+    PresignedURLRequestSerializer,
+)
 from snapsapi.apps.posts.schemas import (
     POST_CREATE_REQUEST_EXAMPLE,
     POST_CREATE_RESPONSE_EXAMPLE,
     PRESIGNED_POST_URL_RESPONSE_EXAMPLE,
     PRESIGNED_POST_URL_REQUEST_EXAMPLE,
 )
-from django.db.models import Count
-# 1. 방금 만든 Pagination 클래스를 import 합니다.
 from snapsapi.apps.core.pagination import StandardResultsSetPagination
-from django.db import transaction
-
-from snapsapi.apps.posts.utils import create_presigned_post, build_object_name
-from drf_rw_serializers.generics import GenericAPIView, UpdateAPIView
 from snapsapi.apps.posts.models import Post
-from django.db import transaction
+from snapsapi.apps.posts.utils import create_presigned_post, build_object_name
 from snapsapi.apps.posts.schemas import MOCK_PRIVATE_FEED, MOCK_PUBLIC_FEED
-
-
-@method_decorator(transaction.atomic, name='dispatch')
-class PostCreateView(GenericAPIView):
-    # """
-    # Handles the creation of a new post.
-    # The entire process is wrapped in a database transaction. If any part of the
-    # post creation fails (e.g., attaching images or tags), the entire transaction
-    # will be rolled back, ensuring data consistency.
-    # """
-    permission_classes = [IsAuthenticated]
-
-    @extend_schema(
-        summary="게시글 작성",
-        description="여러 이미지와 태그를 포함한 게시글을 생성합니다.",
-        request=PostCreateSerializer,
-        examples=POST_CREATE_REQUEST_EXAMPLE,
-        responses={
-            status.HTTP_201_CREATED: OpenApiResponse(
-                response=PostCreateSerializer,
-                description="게시글 등록 성공",
-                examples=POST_CREATE_RESPONSE_EXAMPLE,
-            ),
-            status.HTTP_400_BAD_REQUEST: OpenApiResponse(
-                description="잘못된 요청"
-            ),
-        },
-        auth=None,
-        tags=["Posts"],
-    )
-    def post(self, request):
-        serializer = PostCreateSerializer(data=request.data, context={"request": request})
-        if serializer.is_valid():
-            post = serializer.save()
-            return Response(serializer.to_representation(post),
-                            status=status.HTTP_201_CREATED)  # Todo: attach read serializer
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @method_decorator(transaction.atomic, name='dispatch')
@@ -74,7 +38,6 @@ class PostListCreateView(ListCreateAPIView):
     # """
     permission_classes = [IsAuthenticatedOrReadOnly]
     pagination_class = StandardResultsSetPagination
-
 
     def get_queryset(self):
         return (
@@ -91,44 +54,35 @@ class PostListCreateView(ListCreateAPIView):
         )
 
     def get_serializer_class(self):
-        """
-        요청 메서드에 따라 사용할 Serializer를 동적으로 결정합니다.
-        """
-        if self.request.method == 'POST':
-            # 생성(POST) 요청 시에는 PostCreateSerializer를 사용합니다.
-            return PostCreateSerializer
-        # 목록 조회(GET) 요청 시에는 PostListSerializer를 사용합니다.
-        return PostListSerializer
+        return PostCreateSerializer if self.request.method == 'POST' else PostReadSerializer
 
-    @extend_schema(
-        summary="게시글 작성",
-        description="여러 이미지와 태그를 포함한 게시글을 생성합니다.",
-        request=PostCreateSerializer,
-        examples=POST_CREATE_REQUEST_EXAMPLE,
-        responses={
-            status.HTTP_201_CREATED: OpenApiResponse(
-                response=PostCreateSerializer,
-                description="게시글 등록 성공",
-                examples=POST_CREATE_RESPONSE_EXAMPLE,
-            ),
-            status.HTTP_400_BAD_REQUEST: OpenApiResponse(
-                description="잘못된 요청"
-            ),
-        },
-        auth=None,
-        tags=["Posts"],
-    )
-    def post(self, request):
-        serializer = PostCreateSerializer(data=request.data, context={"request": request})
-        if serializer.is_valid():
-            post = serializer.save()
-            return Response(serializer.to_representation(post),
-                            status=status.HTTP_201_CREATED)  # Todo: attach read serializer
+    # @extend_schema(
+    #     summary="게시글 작성",
+    #     description="여러 이미지와 태그를 포함한 게시글을 생성합니다.",
+    #     request=PostCreateSerializer,
+    #     examples=POST_CREATE_REQUEST_EXAMPLE,
+    #     responses={
+    #         status.HTTP_201_CREATED: OpenApiResponse(
+    #             response=PostCreateSerializer,
+    #             description="게시글 등록 성공",
+    #             examples=POST_CREATE_RESPONSE_EXAMPLE,
+    #         ),
+    #         status.HTTP_400_BAD_REQUEST: OpenApiResponse(
+    #             description="잘못된 요청"
+    #         ),
+    #     },
+    #     auth=None,
+    #     tags=["Posts"],
+    # )
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data, context={"request": request})
+        if serializer.is_valid(raise_exception=True):
+            created_instance = serializer.save()
+            read_serializer = PostReadSerializer(created_instance, context=self.get_serializer_context())
+            headers = self.get_success_headers(read_serializer.data)
+            return Response(read_serializer.data, status=status.HTTP_201_CREATED,
+                            headers=headers)  # Todo: attach drf_rw_serializers serializer
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def get(self, request, *args, **kwargs):
-        # ListCreateAPIView의 기본 list 동작을 그대로 사용합니다.
-        return super().get(request, *args, **kwargs)
 
 
 @method_decorator(transaction.atomic, name='dispatch')

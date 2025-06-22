@@ -11,7 +11,7 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema, OpenApiResponse, extend_schema_view, inline_serializer
 from rest_framework import status
-from rest_framework.generics import ListAPIView
+from rest_framework.generics import ListAPIView, UpdateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -24,11 +24,13 @@ from snapsapi.apps.users.schemas import *
 from snapsapi.apps.users.serializers import (
     SocialLoginWriteSerializer,
     SocialLoginReadSerializer,
-    SocialLoginResponseSerializer, FollowResponseSerializer,
+    SocialLoginResponseSerializer,
+    FollowResponseSerializer,
+    UsernameUpdateSerializer
 )
 
-
 User = get_user_model()
+
 
 class SocialLoginView(_SocialLoginView):
     callback_url = settings.GOOGLE_REDIRECT_URL
@@ -103,6 +105,7 @@ class SocialLoginView(_SocialLoginView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+
 class FollowToggleView(APIView):
     """
     특정 유저에 대한 팔로우/언팔로우를 처리하는 토글 방식의 View입니다.
@@ -146,6 +149,21 @@ class FollowToggleView(APIView):
 class UserProfileView(ListAPIView):
     pass
 
+
+class UsernameUpdateView(UpdateAPIView):
+    """
+    Updates the username for the authenticated user. (PATCH)
+    """
+    serializer_class = UsernameUpdateSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        """
+        Returns the object the view will be acting upon.
+        Instead of looking up an ID from the URL, it always returns
+        the user who made the request (request.user).
+        """
+        return self.request.user
 
 
 class GoogleConnectView(_SocialConnectView):

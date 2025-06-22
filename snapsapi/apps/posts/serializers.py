@@ -1,13 +1,11 @@
 from django.contrib.auth import get_user, get_user_model
 from rest_framework import serializers
 
-from snapsapi.apps.users.serializers import UserSerializer
+from snapsapi.apps.users.serializers import UserSerializer, UserProfileSerializer
 from snapsapi.apps.posts.models import Post, PostImage, Tag
 from snapsapi.apps.likes.models import PostLike
 from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError as DjangoValidationError
-
-
 
 user = get_user_model()
 
@@ -221,63 +219,86 @@ class PostUpdateSerializer(serializers.ModelSerializer):
 class UserInfoSerializer(serializers.ModelSerializer):
     class Meta:
         model = user
-        fields = ['uid', 'username'] # 필요에 따라 'profile_image' 등 추가 가능
+        fields = ['uid', 'username']  # 필요에 따라 'profile_image' 등 추가 가능
 
-# --- PostReadSerializer 수정 ---
+
+
 class PostReadSerializer(serializers.ModelSerializer):
     """
-    게시물 상세 조회(GET)를 위한 최적화된 Serializer입니다.
-    Post 모델의 필드와 연관된 정보를 효율적으로 반환합니다.
+    Serializer for post detail view.
+    Returns data in the requested nested JSON structure (metadata, user, etc.).
     """
-    # 1. Nested Serializer를 사용하여 작성자 정보를 포함시킵니다.
-    user = UserInfoSerializer(read_only=True)
-
-    # 2. ManyToMany 관계인 태그와 이미지를 처리합니다.
-    #    - images: SerializerMethodField를 사용해 이미지 URL 목록을 반환
-    #    - tags: SlugRelatedField를 사용해 태그 이름 목록을 간단히 반환
+    # These are declared for clarity, but their final values are constructed in to_representation.
+    user = UserProfileSerializer(read_only=True)
     images = serializers.SerializerMethodField()
     tags = serializers.SlugRelatedField(many=True, read_only=True, slug_field='name')
-
-    # 3. 현재 로그인한 사용자의 좋아요 여부를 확인하기 위한 필드입니다.
     is_liked = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
-        # 모델에 정의된 필드들을 명시적으로 포함합니다.
+        # Include all fields needed to build the final representation.
         fields = [
             'uid',
             'user',
             'caption',
-            'images',          # 메서드로 처리
-            'tags',            # SlugRelatedField로 처리
-            'likes_count',     # 모델 필드 직접 사용
-            'comments_count',  # 모델 필드 직접 사용
-            'is_liked',        # 메서드로 처리
+            'images',
+            'tags',
+            'likes_count',
+            'comments_count',
+            'is_liked',
             'is_public',
             'created_at',
             'updated_at',
         ]
-        read_only_fields = fields # 모든 필드를 읽기 전용으로 설정
 
     def get_images(self, post):
         """
-        Post 객체에 연결된 PostImage 객체들의 URL 목록을 반환합니다.
-        prefetch_related와 함께 사용될 때 효율적입니다.
+        Returns a list of image objects for the post, formatted as [{"url": "..."}].
         """
-        # PostImage 모델에 'post' ForeignKey가 있고, 'url' 필드가 있다고 가정합니다.
-        # 이 Post에 연결된 모든 이미지들을 가져옵니다.
-        return [image.url for image in post.images.all()]
+        # Assumes post.images.all() returns a queryset of PostImage objects, each with a 'url' attribute.
+        return [{'url': image.url} for image in post.images.all()]
 
     def get_is_liked(self, post):
         """
-        Context로 전달받은 request의 user가 현재 post 객체에
-        좋아요를 눌렀는지 여부를 True/False로 반환합니다.
+        Returns True/False whether the user from the request context has liked
+        the current post object.
         """
         request = self.context.get('request')
         if request and request.user.is_authenticated:
-            # PostLike 모델에서 (user, post) 쌍이 존재하는지 확인합니다.
+            # Check if a PostLike entry exists for the given post and user.
             return PostLike.objects.filter(post=post, user=request.user).exists()
         return False
+
+    def to_representation(self, instance):
+        """
+        Overrides the default output to create the requested nested JSON structure.
+        """
+        # 1. Generate the base representation using the fields defined in `Meta.fields`.
+        data = super().to_representation(instance)
+
+        # 2. Correctly generate the 'user' data by passing the context to UserProfileSerializer.
+        user_serializer = UserProfileSerializer(instance.user, context=self.context)
+        user_data = user_serializer.data
+
+        # 3. Assemble the final, restructured dictionary.
+        restructured_data = {
+            "metadata": {
+                "post_uid": instance.uid,  # Get directly from the post instance.
+                "user_uid": instance.user.uid  # Get directly from the related user instance.
+            },
+            "user": user_data,  # The user data generated in step 2.
+            "images": data.get('images'),  # Get from the base representation.
+            "caption": data.get('caption'),
+            "tags": data.get('tags'),
+            "likes_count": data.get('likes_count'),
+            "comments_count": data.get('comments_count'),
+            "is_liked": data.get('is_liked'),
+            "is_public": data.get('is_public'),
+            "created_at": data.get('created_at'),
+            "updated_at": data.get('updated_at')
+        }
+
+        return restructured_data
 
 
 class PostDeleteSerializer(serializers.Serializer):
