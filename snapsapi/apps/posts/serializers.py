@@ -20,7 +20,7 @@ class PostImageURLSerializer(serializers.ModelSerializer):
 
 class ImageURLSerializer(serializers.Serializer):
     """A simple serializer to validate objects with a 'url' key."""
-    url = serializers.URLField()
+    url = serializers.CharField()
 
 
 # GET 요청 (목록 조회) 시 사용할 메인 Serializer
@@ -143,19 +143,19 @@ class PostUpdateSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError("Each tag must be a non-empty string.")
         return value
 
-    def validate_images(self, value):
-        """
-        # Ensure images is a list of valid URLs
-        """
-        if not isinstance(value, list):
-            raise serializers.ValidationError("Images must be a list.")
-        validator = URLValidator()
-        for url in value:
-            try:
-                validator(url)
-            except DjangoValidationError:
-                raise serializers.ValidationError(f"Invalid URL: '{url}'")
-        return value
+    # def validate_images(self, value):
+    #     """
+    #     # Ensure images is a list of valid URLs
+    #     """
+    #     if not isinstance(value, list):
+    #         raise serializers.ValidationError("Images must be a list.")
+    #     validator = URLValidator()
+    #     for url in value:
+    #         try:
+    #             validator(url)
+    #         except DjangoValidationError:
+    #             raise serializers.ValidationError(f"Invalid URL: '{url}'")
+    #     return value
 
     def update(self, instance, validated_data):
         tags_data = validated_data.pop('tags', None)
