@@ -2,7 +2,7 @@ from django.contrib.auth import get_user, get_user_model
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
-from snapsapi.apps.users.serializers import UserSerializer, UserProfileSerializer
+from snapsapi.apps.users.serializers import UserLoginSerializer, UserProfileSerializer
 from snapsapi.apps.posts.models import Post, PostImage, Tag
 from snapsapi.apps.likes.models import PostLike
 from django.core.validators import URLValidator

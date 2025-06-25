@@ -25,7 +25,7 @@ from snapsapi.apps.posts.schemas import (
 )
 from snapsapi.apps.core.pagination import StandardResultsSetPagination
 from snapsapi.apps.posts.models import Post
-from snapsapi.apps.posts.utils import create_presigned_post, build_object_name
+from snapsapi.utils.aws import create_presigned_post, build_posts_image_object_name
 
 
 @method_decorator(transaction.atomic, name='dispatch')
@@ -162,7 +162,7 @@ class PresignedURLView(GenericAPIView):
             file_name = file_info.get('file_name')
             presigned_url = create_presigned_post(
                 settings.AWS_S3_MEDIA_BUCKET_NAME,
-                build_object_name(user_uid, file_name),
+                build_posts_image_object_name(user_uid, file_name),
                 expiration=300
             )
             results.append({

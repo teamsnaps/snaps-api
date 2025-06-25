@@ -14,7 +14,7 @@ class SocialLoginReadSerializer(SocialLoginSerializer):
     provider = serializers.ChoiceField(choices=['google', 'kakao', 'naver'])
 
 
-class UserSerializer(serializers.Serializer):
+class UserLoginSerializer(serializers.Serializer):
     uid = serializers.CharField()
     username = serializers.CharField()
     email = serializers.EmailField()
@@ -57,7 +57,7 @@ class UserProfileSerializer(serializers.Serializer):
 class SocialLoginResponseSerializer(serializers.Serializer):
     access = serializers.CharField()
     refresh = serializers.CharField()
-    user = UserSerializer()
+    user = UserLoginSerializer()
 
 
 class FollowResponseSerializer(serializers.Serializer):

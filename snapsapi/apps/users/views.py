@@ -12,7 +12,7 @@ from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema, OpenApiResponse, extend_schema_view, inline_serializer
 from rest_framework import status
 from rest_framework.generics import ListAPIView, UpdateAPIView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.views import APIView
 import json
@@ -26,7 +26,7 @@ from snapsapi.apps.users.serializers import (
     SocialLoginReadSerializer,
     SocialLoginResponseSerializer,
     FollowResponseSerializer,
-    UsernameUpdateSerializer
+    UsernameUpdateSerializer, UserProfileSerializer
 )
 
 User = get_user_model()
@@ -147,7 +147,8 @@ class FollowToggleView(APIView):
 
 
 class UserProfileView(ListAPIView):
-    pass
+    queryset = User.objects.filter(is_active=True, is_deleted=False)
+    serializer_class = UserProfileSerializer
 
 
 class UsernameUpdateView(UpdateAPIView):

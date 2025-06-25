@@ -1,13 +1,12 @@
 from rest_framework import serializers
 from snapsapi.apps.posts.models import Post
 from snapsapi.apps.comments.models import Comment
-from snapsapi.apps.users.serializers import UserSerializer
+from snapsapi.apps.users.serializers import UserLoginSerializer
 
 from rest_framework import serializers
 
 from snapsapi.apps.comments.models import Comment
 from snapsapi.apps.posts.models import Post
-from snapsapi.apps.users.serializers import UserSerializer
 
 
 class CommentReadSerializer(serializers.ModelSerializer):
@@ -15,7 +14,7 @@ class CommentReadSerializer(serializers.ModelSerializer):
     댓글 조회(GET)를 위한 Serializer입니다.
     작성자 정보와 대댓글(replies)을 포함합니다.
     """
-    user = UserSerializer(read_only=True)
+    user = UserLoginSerializer(read_only=True)   # Todo: modified serializer
     replies = serializers.SerializerMethodField()
 
     class Meta:
