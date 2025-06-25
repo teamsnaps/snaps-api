@@ -15,12 +15,12 @@ def get_file_extension(file_name: str) -> str:
 def build_posts_image_object_name(user_uid: str, file_name: str) -> str:
     now = datetime.now(UTC)
     ext = get_file_extension(file_name)
-    return f"media/posts/user_{user_uid}/{now:%Y/%m/%d}/{uuid.uuid4()}.{ext}"
+    return f"/media/posts/user_{user_uid}/{now:%Y/%m/%d}/{uuid.uuid4()}.{ext}"
 
 
 def build_user_profile_image_object_name(user_uid: str, file_name: str) -> str:
     ext = get_file_extension(file_name)
-    return f"media/users/user_{user_uid}/{uuid.uuid4()}.{ext}"
+    return f"/media/users/user_{user_uid}/{uuid.uuid4()}.{ext}"
 
 
 # https://boto3.amazonaws.com/v1/documentation/api/latest/guide/s3-presigned-urls.html

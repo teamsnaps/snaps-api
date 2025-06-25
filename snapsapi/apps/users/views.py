@@ -11,7 +11,7 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema, OpenApiResponse, extend_schema_view, inline_serializer
 from rest_framework import status
-from rest_framework.generics import ListAPIView, UpdateAPIView
+from rest_framework.generics import ListAPIView, UpdateAPIView, GenericAPIView
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -26,8 +26,10 @@ from snapsapi.apps.users.serializers import (
     SocialLoginReadSerializer,
     SocialLoginResponseSerializer,
     FollowResponseSerializer,
-    UsernameUpdateSerializer, UserProfileSerializer
+    UsernameUpdateSerializer, UserProfileSerializer, UserProfileImageFileInfoSerializer,
+    UserProfileImageUploadSerializer
 )
+from utils.aws import create_presigned_post, build_user_profile_image_object_name
 
 User = get_user_model()
 
@@ -165,6 +167,31 @@ class UsernameUpdateView(UpdateAPIView):
         the user who made the request (request.user).
         """
         return self.request.user
+
+
+class UserProfileImagePresignedURLView(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = UserProfileImageFileInfoSerializer
+
+    def post(self, request):
+        file_name = request.data['file_name']
+        user_uid = request.user.uid
+        presigned_url = create_presigned_post(
+            settings.AWS_S3_MEDIA_BUCKET_NAME,
+            build_user_profile_image_object_name(user_uid, file_name),
+            expiration=settings.AWS_S3_PRESIGNED_URL_POST_EXPIRATION
+        )
+        return Response({
+            "file_name": file_name,
+            "presigned_url": presigned_url,
+        }, status=status.HTTP_200_OK)
+
+
+class UserProfileImageUpdateView(APIView):
+    queryset = User.objects.filter(is_active=True, is_deleted=False)
+    permission_classes = [IsAuthenticated]
+    serializer_class = UserProfileImageUploadSerializer
+    # Todo: 26일 오후 여기서부터 gogo
 
 
 class GoogleConnectView(_SocialConnectView):

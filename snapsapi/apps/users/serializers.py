@@ -123,3 +123,11 @@ class UsernameUpdateSerializer(serializers.ModelSerializer):
         instance.username_last_changed_at = datetime.now(UTC)
         instance.save(update_fields=['username', 'is_username_changed', 'username_last_changed_at'])
         return instance
+
+
+class UserProfileImageFileInfoSerializer(serializers.Serializer):
+    file_name = serializers.CharField()
+
+
+class UserProfileImageUploadSerializer(serializers.Serializer):
+    image_url = serializers.CharField()

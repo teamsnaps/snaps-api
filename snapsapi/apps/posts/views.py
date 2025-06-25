@@ -163,11 +163,11 @@ class PresignedURLView(GenericAPIView):
             presigned_url = create_presigned_post(
                 settings.AWS_S3_MEDIA_BUCKET_NAME,
                 build_posts_image_object_name(user_uid, file_name),
-                expiration=300
+                expiration=settings.AWS_S3_PRESIGNED_URL_POST_EXPIRATION
             )
             results.append({
                 "file_name": file_name,
                 "presigned_url": presigned_url,
             })
 
-        return Response({"results": results})
+        return Response({"results": results}, status=status.HTTP_200_OK)
