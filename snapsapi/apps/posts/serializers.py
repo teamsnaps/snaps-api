@@ -116,7 +116,7 @@ class PostCreateSerializer(serializers.Serializer):
 class PostUpdateSerializer(serializers.ModelSerializer):
     caption = serializers.CharField(allow_blank=True, required=False, help_text="게시글 내용")
     tags = serializers.ListField(child=serializers.CharField(max_length=255), required=False, help_text="태그 문자열 리스트")
-    images = serializers.ListField(child=serializers.URLField(), required=False, help_text="이미지 URL 리스트")
+    images = serializers.ListField(child=serializers.CharField(max_length=255), required=False, help_text="이미지 URL 리스트")
     is_public = serializers.BooleanField(required=False, help_text="공개 여부")
     is_active = serializers.BooleanField(required=False, help_text="활성 여부")
     is_deleted = serializers.BooleanField(required=False, help_text="삭제 여부")
