@@ -27,7 +27,7 @@ class Tag(models.Model):
 class PostImage(models.Model):
     uid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
     post = models.ForeignKey('Post', on_delete=models.CASCADE, related_name='images')
-    url = models.URLField()
+    url = models.CharField(max_length=255, null=False, blank=False)
     order = models.PositiveIntegerField(default=0)  # 이미지 순서
     created_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
