@@ -4,7 +4,7 @@ from rest_framework.urlpatterns import format_suffix_patterns
 from snapsapi.apps.users.views import (
     SocialLoginView,
     GoogleConnectView, FollowToggleView, UserProfileView, UsernameUpdateView, UserProfileImagePresignedURLView,
-    UserProfileImageUpdateView
+    UserProfileUpdateView
 )
 
 app_name = 'users'
@@ -16,7 +16,7 @@ urlpatterns += [
     path('<str:user_uid>/', UserProfileView.as_view(), name='user-profile'),
     path('me/username/', UsernameUpdateView.as_view(), name='user-me-username'),
     path('me/image/presigned-url/', UserProfileImagePresignedURLView.as_view(), name='user-me-image-presigned-url'),
-    path('me/image/', UserProfileImageUpdateView.as_view(), name='user-me-image'),
+    path('me/profile/', UserProfileUpdateView.as_view(), name='user-me-image'),
     # path('social-registerrr/', GoogleConnectView.as_view(), name='social_register'),
     path('<str:user_uid>/follow/', FollowToggleView.as_view(), name='user-follow-toggle'),
 

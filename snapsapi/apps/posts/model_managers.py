@@ -1,11 +1,16 @@
 from django.db import models
 from typing import TYPE_CHECKING
 
+from snapsapi.apps.posts import model_querysets as mq
+
 if TYPE_CHECKING:
     from snapsapi.apps.posts.models import Post, Tag  # Avoiding Circular References
 
 
 class PostManager(models.Manager):
+    def get_queryset(self):
+        return mq.PostQuerySet(self.model, using=self._db)
+
     def create_post(self, user, caption: str, images: list[str], tags: list[str], **extra_fields) -> 'Post':
         """
         Create a Post and associated PostImage instances at once.
@@ -22,6 +27,12 @@ class PostManager(models.Manager):
             PostImage.objects.create(post=post, url=url, order=idx)
         post.update_tags(tags)
         return post
+
+    def get_first_image_urls_for_user(self, user):
+        """
+        A convenient method to get all first image URLs for a specific user.
+        """
+        return self.get_queryset().filter(user=user).get_first_image_urls()
 
 
 class TagManager(models.Manager):

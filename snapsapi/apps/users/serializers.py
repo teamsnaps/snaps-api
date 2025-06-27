@@ -2,6 +2,9 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from dj_rest_auth.registration.serializers import SocialLoginSerializer
 from datetime import timezone, datetime, UTC, timedelta
+
+from snapsapi.apps.posts.models import Post
+from snapsapi.apps.users.models import Profile
 from snapsapi.apps.core.models import Follow
 
 
@@ -22,6 +25,9 @@ class UserLoginSerializer(serializers.Serializer):
     last_name = serializers.CharField()
 
 
+
+
+
 class UserProfileSerializer(serializers.Serializer):
     """
     User profile information for display purposes.
@@ -29,7 +35,7 @@ class UserProfileSerializer(serializers.Serializer):
     """
     uid = serializers.CharField(read_only=True)
     username = serializers.CharField(read_only=True)
-    image = serializers.URLField(source='profile.image', read_only=True)
+    image_url = serializers.CharField(source='profile.image_url', read_only=True)
     bio = serializers.CharField(source='profile.bio', read_only=True)
     is_me = serializers.SerializerMethodField()
     is_following = serializers.SerializerMethodField()
@@ -52,6 +58,13 @@ class UserProfileSerializer(serializers.Serializer):
         if request_user == obj:
             return False
         return Follow.objects.filter(follower=request_user, following=obj).exists()
+
+class UserProfileReadSerializer(UserProfileSerializer):
+    feed_images = serializers.SerializerMethodField()
+
+    def get_feed_images(self, obj):
+        return Post.objects.get_first_image_urls_for_user(obj)
+
 
 
 class SocialLoginResponseSerializer(serializers.Serializer):
@@ -129,5 +142,19 @@ class UserProfileImageFileInfoSerializer(serializers.Serializer):
     file_name = serializers.CharField()
 
 
-class UserProfileImageUploadSerializer(serializers.Serializer):
-    image_url = serializers.CharField()
+class UserProfileUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = ['bio', 'image_url']
+
+    def validate(self, data):
+        known_fields = set(self.fields.keys())
+        input_fields = set(self.initial_data.keys())
+        extra_fields = input_fields - known_fields
+
+        if extra_fields:
+            raise serializers.ValidationError(
+                f"Unexpected field(s) provided: {', '.join(extra_fields)}"
+            )
+
+        return data

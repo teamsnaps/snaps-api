@@ -18,8 +18,10 @@ from rest_framework.views import APIView
 import json
 from rest_framework import serializers as s
 
+from snapsapi.apps.users.models import Profile
 from snapsapi.apps.core.models import Follow
 from snapsapi.apps.users.schemas import *
+from snapsapi.apps.users.permissions import IsProfileOwner, IsActiveUser
 
 from snapsapi.apps.users.serializers import (
     SocialLoginWriteSerializer,
@@ -27,7 +29,7 @@ from snapsapi.apps.users.serializers import (
     SocialLoginResponseSerializer,
     FollowResponseSerializer,
     UsernameUpdateSerializer, UserProfileSerializer, UserProfileImageFileInfoSerializer,
-    UserProfileImageUploadSerializer
+    UserProfileUpdateSerializer, UserProfileReadSerializer
 )
 from utils.aws import create_presigned_post, build_user_profile_image_object_name
 
@@ -149,8 +151,9 @@ class FollowToggleView(APIView):
 
 
 class UserProfileView(ListAPIView):
-    queryset = User.objects.filter(is_active=True, is_deleted=False)
-    serializer_class = UserProfileSerializer
+    queryset = User.objects.all()
+    permission_classes = [IsActiveUser]
+    serializer_class = UserProfileReadSerializer
 
 
 class UsernameUpdateView(UpdateAPIView):
@@ -187,11 +190,14 @@ class UserProfileImagePresignedURLView(GenericAPIView):
         }, status=status.HTTP_200_OK)
 
 
-class UserProfileImageUpdateView(APIView):
-    queryset = User.objects.filter(is_active=True, is_deleted=False)
-    permission_classes = [IsAuthenticated]
-    serializer_class = UserProfileImageUploadSerializer
-    # Todo: 26일 오후 여기서부터 gogo
+class UserProfileUpdateView(UpdateAPIView):
+    queryset = Profile.objects.all()
+    serializer_class = UserProfileUpdateSerializer
+    permission_classes = [IsAuthenticated, IsProfileOwner, IsActiveUser]
+
+    def get_object(self):
+        obj = self.queryset.get(user=self.request.user)
+        return obj
 
 
 class GoogleConnectView(_SocialConnectView):
