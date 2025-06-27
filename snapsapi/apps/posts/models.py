@@ -1,4 +1,5 @@
 import uuid
+from django.conf import settings
 from django.db import models
 
 from snapsapi.apps.users.models import User
@@ -42,7 +43,7 @@ class PostImage(models.Model):
 
 class Post(models.Model, mx.PostMixin):
     uid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='posts')
     caption = models.TextField(blank=True)
     tags = models.ManyToManyField('Tag', blank=True, related_name='posts')
     likes_count = models.PositiveIntegerField(default=0)

@@ -1,10 +1,13 @@
 import uuid
+from django.conf import settings
 from django.db import models
 from django.contrib.auth import get_user_model
 from bson.objectid import ObjectId
 import shortuuid
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
+
+from snapsapi.apps.core import model_managers as mm
 
 
 def generate_short_uuid():
@@ -19,9 +22,11 @@ User = get_user_model()
 
 
 class Follow(models.Model):
-    follower = models.ForeignKey(User, on_delete=models.CASCADE, related_name='following')
-    following = models.ForeignKey(User, on_delete=models.CASCADE, related_name='followers')
+    follower = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='following')
+    following = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='followers')
     created_at = models.DateTimeField(auto_now_add=True)
+
+    objects = mm.FollowManager()
 
     class Meta:
         unique_together = ('follower', 'following')
@@ -49,6 +54,7 @@ def increment_follow_counts(sender, instance, created, **kwargs):
 
         following.followers_count = models.F('followers_count') + 1
         following.save(update_fields=['followers_count'])
+
 
 @receiver(post_delete, sender=Follow)
 def decrement_follow_counts(sender, instance, **kwargs):

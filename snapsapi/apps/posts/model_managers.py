@@ -8,7 +8,7 @@ if TYPE_CHECKING:
 
 
 class PostManager(models.Manager):
-    def get_queryset(self):
+    def get_queryset(self) -> 'mq.PostQuerySet':
         return mq.PostQuerySet(self.model, using=self._db)
 
     def create_post(self, user, caption: str, images: list[str], tags: list[str], **extra_fields) -> 'Post':
@@ -28,11 +28,13 @@ class PostManager(models.Manager):
         post.update_tags(tags)
         return post
 
-    def get_first_image_urls_for_user(self, user):
-        """
-        A convenient method to get all first image URLs for a specific user.
-        """
-        return self.get_queryset().filter(user=user).get_first_image_urls()
+    def get_posts_by_user(self, user):
+        return (
+            self.get_queryset()
+            .filter(user=user)
+            .get_posts_with_first_image()
+        )  # Todo: Unresolved attribute reference error in Pycharm
+
 
 
 class TagManager(models.Manager):

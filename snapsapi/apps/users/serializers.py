@@ -25,9 +25,6 @@ class UserLoginSerializer(serializers.Serializer):
     last_name = serializers.CharField()
 
 
-
-
-
 class UserProfileSerializer(serializers.Serializer):
     """
     User profile information for display purposes.
@@ -59,12 +56,27 @@ class UserProfileSerializer(serializers.Serializer):
             return False
         return Follow.objects.filter(follower=request_user, following=obj).exists()
 
-class UserProfileReadSerializer(UserProfileSerializer):
-    feed_images = serializers.SerializerMethodField()
+class UserSerializer(serializers.Serializer):
+    """
+    User profile information for display purposes.
+    """
+    uid = serializers.CharField(read_only=True)
+    username = serializers.CharField(read_only=True)
+    image_url = serializers.CharField(source='profile.image_url', read_only=True)
+    bio = serializers.CharField(source='profile.bio', read_only=True)
 
-    def get_feed_images(self, obj):
-        return Post.objects.get_first_image_urls_for_user(obj)
 
+
+class UserProfileReadSerializer(UserSerializer):
+    images = serializers.SerializerMethodField()
+    total_posts = serializers.IntegerField(read_only=True)
+    followers_count = serializers.IntegerField(source='profile.image_url', read_only=True)
+    following_count = serializers.IntegerField(read_only=True)
+
+    def get_images(self, obj):
+        return {
+            "feed_images": Post.objects.get_posts_by_user(obj)
+        }
 
 
 class SocialLoginResponseSerializer(serializers.Serializer):

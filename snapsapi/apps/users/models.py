@@ -7,6 +7,8 @@ from django.core.validators import MinLengthValidator
 from bson.objectid import ObjectId
 import shortuuid
 
+from snapsapi.apps.users import model_managers as mm
+
 
 def generate_short_uuid():
     return shortuuid.uuid()
@@ -61,6 +63,8 @@ class User(AbstractUser):
     #         "unique": _("A user with that username already exists."),
     #     },
     # )
+
+    objects = mm.UserManager()
 
     def __str__(self):
         return self.username
