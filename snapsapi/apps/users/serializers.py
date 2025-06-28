@@ -99,8 +99,8 @@ class UserSerializer2(serializers.Serializer):
 
 class UserProfileReadSerializer(UserSerializer2):
     images = serializers.SerializerMethodField()
-    total_posts = serializers.IntegerField(read_only=True)
-    followers_count = serializers.IntegerField(source='profile.image_url', read_only=True)
+    posts_count = serializers.IntegerField(read_only=True)
+    followers_count = serializers.IntegerField(read_only=True)
     following_count = serializers.IntegerField(read_only=True)
 
     def get_images(self, obj):

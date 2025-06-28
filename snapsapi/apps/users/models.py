@@ -8,6 +8,7 @@ from bson.objectid import ObjectId
 import shortuuid
 
 from snapsapi.apps.users import model_managers as mm
+from snapsapi.apps.users import model_mixins as mx
 
 
 def generate_short_uuid():
@@ -23,7 +24,7 @@ def generate_username_with_short_uuid():
     return f"User_{suid}"
 
 
-class User(AbstractUser):
+class User(AbstractUser, mx.UserMixin):
     uid = models.CharField(
         max_length=64, unique=True, editable=False, default=generate_short_uuid,
         db_index=True, help_text="외부 노출용 유저 고유 식별자"
@@ -48,6 +49,7 @@ class User(AbstractUser):
         help_text="Stores the timestamp of the last username change."
     )
 
+    posts_count = models.PositiveIntegerField(default=0, db_index=True)
     followers_count = models.PositiveIntegerField(default=0, db_index=True)
     following_count = models.PositiveIntegerField(default=0, db_index=True)
 
