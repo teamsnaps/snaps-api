@@ -7,6 +7,7 @@ from snapsapi.apps.posts.models import Post
 from snapsapi.apps.users.models import Profile
 from snapsapi.apps.core.models import Follow
 
+
 class UserSerializer(serializers.Serializer):
     """
     User profile information for display purposes.
@@ -38,6 +39,41 @@ class UserSerializer(serializers.Serializer):
             return False
         return Follow.objects.filter(follower=request_user, following=obj).exists()
 
+
+class UserProfileSerializer(serializers.Serializer):
+    """
+    User profile information for display purposes.
+    Dynamically calculates 'is_following' based on the request context.
+    """
+    metadata = serializers.SerializerMethodField(read_only=True)
+    user = UserSerializer(source='*', read_only=True)
+    posts_count = serializers.IntegerField(read_only=True)
+    followers_count = serializers.IntegerField(read_only=True)
+    following_count = serializers.IntegerField(read_only=True)
+    images = serializers.SerializerMethodField()
+
+    class Meta:
+        model = get_user_model()
+        fields = (
+            'metadata',
+            'user',
+            'posts_count',
+            'followers_count',
+            'following_count',
+            'images',
+        )
+
+    def get_metadata(self, obj):
+        return {
+            'user_uid': obj.uid
+        }
+
+    def get_images(self, obj):
+        return {
+            "feed_images": Post.objects.get_posts_by_user(obj)
+        }
+
+
 class SocialLoginWriteSerializer(SocialLoginSerializer):
     access_token = serializers.CharField()
     provider = serializers.ChoiceField(choices=['google', 'kakao', 'naver'])
@@ -53,60 +89,6 @@ class UserLoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
     first_name = serializers.CharField()
     last_name = serializers.CharField()
-
-
-class UserProfileSerializer(serializers.Serializer):
-    """
-    User profile information for display purposes.
-    Dynamically calculates 'is_following' based on the request context.
-    """
-    uid = serializers.CharField(read_only=True)
-    username = serializers.CharField(read_only=True)
-    image_url = serializers.CharField(source='profile.image_url', read_only=True)
-    bio = serializers.CharField(source='profile.bio', read_only=True)
-    is_me = serializers.SerializerMethodField()
-    is_following = serializers.SerializerMethodField()
-
-    def get_is_me(self, obj):
-        """
-        Checks if the user object ('obj') is the same as the user making the request.
-        """
-        request_user = self.context.get('request').user
-        return request_user.is_authenticated and request_user == obj
-
-    def get_is_following(self, obj):
-        """
-        Checks if the current request user is following the user object ('obj').
-        'obj' here is the user instance being serialized (the post's author).
-        """
-        request_user = self.context.get('request').user
-        if not request_user or not request_user.is_authenticated:
-            return False
-        if request_user == obj:
-            return False
-        return Follow.objects.filter(follower=request_user, following=obj).exists()
-
-class UserSerializer2(serializers.Serializer):
-    """
-    User profile information for display purposes.
-    """
-    uid = serializers.CharField(read_only=True)
-    username = serializers.CharField(read_only=True)
-    image_url = serializers.CharField(source='profile.image_url', read_only=True)
-    bio = serializers.CharField(source='profile.bio', read_only=True)
-
-
-
-class UserProfileReadSerializer(UserSerializer2):
-    images = serializers.SerializerMethodField()
-    posts_count = serializers.IntegerField(read_only=True)
-    followers_count = serializers.IntegerField(read_only=True)
-    following_count = serializers.IntegerField(read_only=True)
-
-    def get_images(self, obj):
-        return {
-            "feed_images": Post.objects.get_posts_by_user(obj)
-        }
 
 
 class SocialLoginResponseSerializer(serializers.Serializer):

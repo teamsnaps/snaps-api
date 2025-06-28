@@ -11,26 +11,29 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema, OpenApiResponse, extend_schema_view, inline_serializer
 from rest_framework import status
-from rest_framework.generics import ListAPIView, UpdateAPIView, GenericAPIView, RetrieveAPIView
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.views import APIView
 import json
-from rest_framework import serializers as s
+from rest_framework import serializers
+
+from drf_rw_serializers.generics import ListAPIView, UpdateAPIView, GenericAPIView, RetrieveAPIView
 
 from snapsapi.apps.users.models import Profile
 from snapsapi.apps.core.models import Follow
 from snapsapi.apps.users.schemas import *
 from snapsapi.apps.users.permissions import IsProfileOwner, IsActiveUser
 
-from snapsapi.apps.users.serializers import (
-    SocialLoginWriteSerializer,
-    SocialLoginReadSerializer,
-    SocialLoginResponseSerializer,
-    FollowResponseSerializer,
-    UsernameUpdateSerializer, UserProfileSerializer, UserProfileImageFileInfoSerializer,
-    UserProfileUpdateSerializer, UserProfileReadSerializer
-)
+from snapsapi.apps.users import serializers as s
+
+# from snapsapi.apps.users.serializers import (
+#     SocialLoginWriteSerializer,
+#     SocialLoginReadSerializer,
+#     SocialLoginResponseSerializer,
+#     FollowResponseSerializer,
+#     UsernameUpdateSerializer, UserProfileSerializer, UserProfileImageFileInfoSerializer,
+#     UserProfileUpdateSerializer
+# )
 from snapsapi.utils.aws import create_presigned_post, build_user_profile_image_object_name
 
 User = get_user_model()
@@ -55,7 +58,7 @@ class SocialLoginView(_SocialLoginView):
 
     def get_serializer_class(self):
         if self.request.method == 'POST':
-            return SocialLoginWriteSerializer
+            return s.SocialLoginWriteSerializer
         return super().get_serializer_class()
 
     @extend_schema(
@@ -65,23 +68,23 @@ class SocialLoginView(_SocialLoginView):
         request=inline_serializer(
             name="SocialLoginInlineRequest",
             fields={
-                "access_token": s.CharField(help_text="소셜 플랫폼에서 발급받은 액세스 토큰"),
-                "provider": s.ChoiceField(choices=['google', 'kakao', 'naver'],
-                                          help_text="사용할 소셜 로그인 제공자 (google, kakao, naver 중 하나)"),
+                "access_token": serializers.CharField(help_text="소셜 플랫폼에서 발급받은 액세스 토큰"),
+                "provider": serializers.ChoiceField(choices=['google', 'kakao', 'naver'],
+                                                    help_text="사용할 소셜 로그인 제공자 (google, kakao, naver 중 하나)"),
             }
 
         ),
         examples=SOCIAL_LOGIN_REQUEST_EXAMPLE,
         responses={
             status.HTTP_201_CREATED: OpenApiResponse(
-                response=SocialLoginResponseSerializer,
+                response=s.SocialLoginResponseSerializer,
                 examples=USER_REGISTRATION_RESPONSE_EXAMPLE,
             ),
             status.HTTP_400_BAD_REQUEST: OpenApiResponse(
                 response=inline_serializer(
                     name="SocialLoginErrorResponse",
                     fields={
-                        "detail": s.CharField(),
+                        "detail": serializers.CharField(),
                     }),
                 examples=USER_REGISTRATION_RESPONSE_ERROR_EXAMPLE,
             )
@@ -140,7 +143,7 @@ class FollowToggleView(APIView):
         # DB에서 최신 카운트 정보를 가져오기 위해 객체를 새로고침합니다.
         following.refresh_from_db()
 
-        serializer = FollowResponseSerializer({
+        serializer = s.FollowResponseSerializer({
             'is_following': created,  # 생성되었으면 True(팔로우 성공), 아니면 False(언팔로우 성공)
             'followers_count': following.followers_count,
             'following_count': following.following_count
@@ -150,8 +153,8 @@ class FollowToggleView(APIView):
 
 
 class UserProfileView(RetrieveAPIView):
-    queryset = User.objects.all()
-    serializer_class = UserProfileReadSerializer
+    queryset = User.objects.filter(is_active=True, is_deleted=False)
+    serializer_class = s.UserProfileSerializer
 
     lookup_field = 'uid'
     lookup_url_kwarg = 'user_uid'
@@ -161,8 +164,9 @@ class UsernameUpdateView(UpdateAPIView):
     """
     Updates the username for the authenticated user. (PATCH)
     """
-    serializer_class = UsernameUpdateSerializer
     permission_classes = [IsAuthenticated]
+    write_serializer_class = s.UsernameUpdateSerializer
+    read_serializer_class = s.UserSerializer
 
     def get_object(self):
         """
@@ -175,7 +179,7 @@ class UsernameUpdateView(UpdateAPIView):
 
 class UserProfileImagePresignedURLView(GenericAPIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = UserProfileImageFileInfoSerializer
+    serializer_class = s.UserProfileImageFileInfoSerializer
 
     def post(self, request):
         file_name = request.data['file_name']
@@ -193,8 +197,9 @@ class UserProfileImagePresignedURLView(GenericAPIView):
 
 class UserProfileUpdateView(UpdateAPIView):
     queryset = Profile.objects.all()
-    serializer_class = UserProfileUpdateSerializer
     permission_classes = [IsAuthenticated, IsProfileOwner, IsActiveUser]
+    serializer_class = s.UserProfileUpdateSerializer
+    # read_serializer_class = s.UserSerializer
 
     def get_object(self):
         obj = self.queryset.get(user=self.request.user)
