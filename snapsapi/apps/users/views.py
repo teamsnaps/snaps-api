@@ -31,7 +31,7 @@ from snapsapi.apps.users.serializers import (
     UsernameUpdateSerializer, UserProfileSerializer, UserProfileImageFileInfoSerializer,
     UserProfileUpdateSerializer, UserProfileReadSerializer
 )
-from utils.aws import create_presigned_post, build_user_profile_image_object_name
+from snapsapi.utils.aws import create_presigned_post, build_user_profile_image_object_name
 
 User = get_user_model()
 

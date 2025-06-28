@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 from datetime import datetime, UTC
 
 if TYPE_CHECKING:
@@ -15,7 +15,8 @@ class PostMixin:
         tags = Tag.objects.create_tags(tag_names)
         self.tags.set(tags)
 
-    def attach_images(self: 'Post', urls: list[str]) -> None:
+    # def attach_images(self: 'Post', urls: list[dict[str, Any]] | list[Any]) -> None:
+    def attach_images(self: 'Post', urls) -> None:
         """
         Attaches a list of images to the post.
         :param urls: A list of image URLs to attach.

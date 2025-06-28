@@ -7,6 +7,36 @@ from snapsapi.apps.posts.models import Post
 from snapsapi.apps.users.models import Profile
 from snapsapi.apps.core.models import Follow
 
+class UserSerializer(serializers.Serializer):
+    """
+    User profile information for display purposes.
+    Dynamically calculates 'is_following' based on the request context.
+    """
+    uid = serializers.CharField(read_only=True)
+    username = serializers.CharField(read_only=True)
+    image_url = serializers.CharField(source='profile.image_url', read_only=True)
+    bio = serializers.CharField(source='profile.bio', read_only=True)
+    is_me = serializers.SerializerMethodField()
+    is_following = serializers.SerializerMethodField()
+
+    def get_is_me(self, obj):
+        """
+        Checks if the user object ('obj') is the same as the user making the request.
+        """
+        request_user = self.context.get('request').user
+        return request_user.is_authenticated and request_user == obj
+
+    def get_is_following(self, obj):
+        """
+        Checks if the current request user is following the user object ('obj').
+        'obj' here is the user instance being serialized (the post's author).
+        """
+        request_user = self.context.get('request').user
+        if not request_user or not request_user.is_authenticated:
+            return False
+        if request_user == obj:
+            return False
+        return Follow.objects.filter(follower=request_user, following=obj).exists()
 
 class SocialLoginWriteSerializer(SocialLoginSerializer):
     access_token = serializers.CharField()
@@ -56,7 +86,7 @@ class UserProfileSerializer(serializers.Serializer):
             return False
         return Follow.objects.filter(follower=request_user, following=obj).exists()
 
-class UserSerializer(serializers.Serializer):
+class UserSerializer2(serializers.Serializer):
     """
     User profile information for display purposes.
     """
@@ -67,7 +97,7 @@ class UserSerializer(serializers.Serializer):
 
 
 
-class UserProfileReadSerializer(UserSerializer):
+class UserProfileReadSerializer(UserSerializer2):
     images = serializers.SerializerMethodField()
     total_posts = serializers.IntegerField(read_only=True)
     followers_count = serializers.IntegerField(source='profile.image_url', read_only=True)

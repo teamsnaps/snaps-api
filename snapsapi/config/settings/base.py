@@ -74,6 +74,7 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -143,6 +144,10 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
+LANGUAGES = [
+    ('en-us', 'English'),
+    ('ko', 'Korean'),
+]
 
 TIME_ZONE = 'UTC'
 
@@ -169,8 +174,8 @@ AUTH_USER_MODEL = 'users.User'
 SIMPLE_JWT = {
     # "ACCESS_TOKEN_LIFETIME": timedelta(minutes=240),
     # "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
-    "ACCESS_TOKEN_LIFETIME": timedelta(days=365*100),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=365*100),
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=365 * 100),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=365 * 100),
     "ROTATE_REFRESH_TOKENS": True,  # True로 설정할 경우, refresh token을 보내면 새로운 access token과 refresh token이 반환된다.
     "BLACKLIST_AFTER_ROTATION": True,  # True로 설정될 경우, 기존에 있던 refresh token은 blacklist가된다
     "UPDATE_LAST_LOGIN": True,
@@ -297,7 +302,6 @@ ACCOUNT_EMAIL_VERIFICATION = "optional"  # or "mandatory"
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
 ACCOUNT_LOGIN_METHODS = {'email'}
 
-
 AWS_S3_STATIC_BUCKET_NAME = os.getenv('AWS_S3_STATIC_BUCKET_NAME')
 AWS_S3_MEDIA_BUCKET_NAME = os.getenv('AWS_S3_MEDIA_BUCKET_NAME')
 AWS_S3_PRESIGNED_URL_POST_EXPIRATION = 300
@@ -309,6 +313,6 @@ SOCIALACCOUNT_ADAPTER = 'snapsapi.apps.users.adapters.CustomSocialAccountAdapter
 AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
 # AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_S3_STATIC_BUCKET_NAME')
-AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_S3_STATIC_BUCKET_NAME', 'snapsapi-app-storage') # Todo must edit env variable
+AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_S3_STATIC_BUCKET_NAME', 'snapsapi-app-storage')  # Todo must edit env variable
 AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME')
 # AWS_S3_CUSTOM_DOMAIN    = 'storage.snaps.show'       # CloudFront 커스텀 도메인

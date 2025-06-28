@@ -14,7 +14,7 @@ def api_client():
 @pytest.fixture
 def user1():
     user_model = get_user_model()
-    user = user_model.objects.create_user(username='user1', password='mypassword')
+    user = user_model.objects.create_user(email='user1@snaps.com', password='mypassword', username='user1')
     user.save()
     return user
 
@@ -22,7 +22,7 @@ def user1():
 @pytest.fixture
 def user2():
     user_model = get_user_model()
-    user = user_model.objects.create_user(username='user2', password='mypassword')
+    user = user_model.objects.create_user(email='user2@snaps.com', password='mypassword', username='user2')
     user.save()
 
 
@@ -55,7 +55,7 @@ def post_of_user1(user1, tag1):
     post = m.Post.objects.create(
         user=user1,
         caption="test caption",
-        is_deleted=True,
+        is_deleted=False,
         is_active=True,
     )
     # post.images.set(post_image1)
@@ -74,10 +74,9 @@ def post1(user1, tag1):
     post = m.Post.objects.create(
         user=user1,
         caption="test caption",
-        is_deleted=True,
+        is_deleted=False,
         is_active=True,
     )
-    # post.images.set(post_image1)
     post.tags.add(tag1)
     m.PostImage.objects.create(
         post=post,
@@ -107,7 +106,7 @@ def post3(user1, tag1):
         user=user1,
         caption="test caption",
         images=[],
-        is_deleted=False,
+        is_deleted=True,
         is_active=True,
     )
     post.tags.add(tag1)

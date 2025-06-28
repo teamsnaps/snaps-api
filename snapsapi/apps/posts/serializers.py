@@ -1,8 +1,10 @@
+from typing import Any
+
 from django.contrib.auth import get_user, get_user_model
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
-from snapsapi.apps.users.serializers import UserLoginSerializer, UserProfileSerializer
+from snapsapi.apps.users.serializers import UserLoginSerializer, UserSerializer
 from snapsapi.apps.posts.models import Post, PostImage, Tag
 from snapsapi.apps.likes.models import PostLike
 from django.core.validators import URLValidator
@@ -21,6 +23,107 @@ class PostImageURLSerializer(serializers.ModelSerializer):
 class ImageURLSerializer(serializers.Serializer):
     """A simple serializer to validate objects with a 'url' key."""
     url = serializers.CharField()
+
+
+class PostReadSerializer(serializers.ModelSerializer):
+    """
+    A Serializer used for retrieving posts.
+    It serializes all fields, including the user's 'like' status.
+    """
+    metadata = serializers.SerializerMethodField(read_only=True)
+    user = UserSerializer(read_only=True)
+    images = serializers.SerializerMethodField()
+    tags = serializers.SlugRelatedField(
+        many=True,
+        read_only=True,
+        slug_field='name'
+    )
+    is_liked = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Post
+        fields = [
+            'metadata',
+            'uid',
+            'user',
+            'caption',
+            'images',
+            'tags',
+            'likes_count',
+            'comments_count',
+            'is_liked',
+            'is_public',
+            'created_at',
+            'updated_at',
+        ]
+
+    def get_metadata(self, obj):
+        return {"post_uid": obj.uid, "user_uid": obj.user.uid}
+
+    def get_images(self, obj: object) -> list[dict[str, Any]] | list[Any]:
+        return [{'url': image.url} for image in obj.images.all()] if hasattr(obj, 'images') else []
+
+    def get_is_liked(self, post):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return PostLike.objects.filter(post=post, user=request.user).exists()
+        return False
+
+
+class PostWriteSerializer(serializers.ModelSerializer):
+    """
+    Serializer for creating a new post.
+    """
+    caption = serializers.CharField(
+        allow_blank=True,
+        help_text=_("Write a description for your post. It can be left blank.")
+    )
+    images = ImageURLSerializer(
+        many=True,
+        write_only=True,
+        help_text=_("List of images to add to the post. Must be an array in the format `[{'url': 'https://...'}]`")
+    )
+    # images = PostImageURLSerializer(many=True, read_only=True)
+    tags = serializers.ListField(
+        child=serializers.CharField(max_length=50),
+        allow_empty=True,
+        write_only=True,
+        help_text=_("Enter tags to categorize your post. Example: `['travel', 'landscape']`")
+    )
+
+    class Meta:
+        model = Post
+        fields = [
+            'caption',
+            'images',
+            'tags',
+            'is_public',
+        ]
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+        caption = validated_data.get('caption', '')
+        print(validated_data)
+        images = [item['url'] for item in validated_data.get('images', [])]
+        # print(validated_data)
+        tags = validated_data.get('tags', [])
+        post = Post.objects.create_post(request.user, caption, images, tags)
+        return post
+
+    def update(self, instance, validated_data):
+        images_data = validated_data.pop('images', None)
+        tags_data = validated_data.pop('tags', None)
+
+        instance = super().update(instance, validated_data)
+
+        if images_data is not None:
+            instance.delete_images()
+            instance.attach_images(images_data)
+
+        if tags_data is not None:
+            instance.update_tags(tags_data)
+
+        return instance
 
 
 # GET 요청 (목록 조회) 시 사용할 메인 Serializer
@@ -84,33 +187,6 @@ class PostListSerializer(serializers.ModelSerializer):
             "caption": obj.caption,
             "tags": tag_names
         }
-
-
-class PostCreateSerializer(serializers.Serializer):
-    caption = serializers.CharField(
-        allow_blank=True,
-        help_text=_("게시글에 대한 설명을 자유롭게 작성해주세요. 비워두어도 괜찮습니다.")
-    )
-    images = ImageURLSerializer(
-        many=True,
-        write_only=True,
-        help_text=_("게시글에 추가할 이미지 목록입니다. `[{'url': 'https://...'}]` 형식의 배열이어야 합니다.")
-    )
-    tags = serializers.ListField(
-        child=serializers.CharField(max_length=50),
-        allow_empty=True,
-        write_only=True,
-        help_text=_("게시글을 분류할 태그를 입력합니다. 예: `['여행', '풍경']`")
-    )
-
-    def create(self, validated_data):
-        user = self.context['request'].user
-        caption = validated_data.get('caption', '')
-        images = [item['url'] for item in validated_data.get('images', [])]
-        tags = validated_data.get('tags', [])
-
-        post = Post.objects.create_post(user, caption, images, tags)
-        return post
 
 
 class PostUpdateSerializer(serializers.ModelSerializer):
@@ -201,84 +277,6 @@ class UserInfoSerializer(serializers.ModelSerializer):
     class Meta:
         model = user
         fields = ['uid', 'username']  # 필요에 따라 'profile_image' 등 추가 가능
-
-
-class PostReadSerializer(serializers.ModelSerializer):
-    """
-    Serializer for post detail view.
-    Returns data in the requested nested JSON structure (metadata, user, etc.).
-    """
-    # These are declared for clarity, but their final values are constructed in to_representation.
-    user = UserProfileSerializer(read_only=True)
-    images = serializers.SerializerMethodField()
-    tags = serializers.SlugRelatedField(many=True, read_only=True, slug_field='name')
-    is_liked = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Post
-        # Include all fields needed to build the final representation.
-        fields = [
-            'uid',
-            'user',
-            'caption',
-            'images',
-            'tags',
-            'likes_count',
-            'comments_count',
-            'is_liked',
-            'is_public',
-            'created_at',
-            'updated_at',
-        ]
-
-    def get_images(self, post):
-        """
-        Returns a list of image objects for the post, formatted as [{"url": "..."}].
-        """
-        # Assumes post.images.all() returns a queryset of PostImage objects, each with a 'url' attribute.
-        return [{'url': image.url} for image in post.images.all()]
-
-    def get_is_liked(self, post):
-        """
-        Returns True/False whether the user from the request context has liked
-        the current post object.
-        """
-        request = self.context.get('request')
-        if request and request.user.is_authenticated:
-            # Check if a PostLike entry exists for the given post and user.
-            return PostLike.objects.filter(post=post, user=request.user).exists()
-        return False
-
-    def to_representation(self, instance):
-        """
-        Overrides the default output to create the requested nested JSON structure.
-        """
-        # 1. Generate the base representation using the fields defined in `Meta.fields`.
-        data = super().to_representation(instance)
-
-        # 2. Correctly generate the 'user' data by passing the context to UserProfileSerializer.
-        user_serializer = UserProfileSerializer(instance.user, context=self.context)
-        user_data = user_serializer.data
-
-        # 3. Assemble the final, restructured dictionary.
-        restructured_data = {
-            "metadata": {
-                "post_uid": instance.uid,  # Get directly from the post instance.
-                "user_uid": instance.user.uid  # Get directly from the related user instance.
-            },
-            "user": user_data,  # The user data generated in step 2.
-            "images": data.get('images'),  # Get from the base representation.
-            "caption": data.get('caption'),
-            "tags": data.get('tags'),
-            "likes_count": data.get('likes_count'),
-            "comments_count": data.get('comments_count'),
-            "is_liked": data.get('is_liked'),
-            "is_public": data.get('is_public'),
-            "created_at": data.get('created_at'),
-            "updated_at": data.get('updated_at')
-        }
-
-        return restructured_data
 
 
 class PostDeleteSerializer(serializers.Serializer):

@@ -1,8 +1,12 @@
 CREATE_POST_PAYLOAD = {
     "caption": "test caption",
     "images": [
-        "https://mybucket.s3.ap-northeast-2.amazonaws.com/uploads/2025/06/11/photo1.jpg",
-        "https://mybucket.s3.ap-northeast-2.amazonaws.com/uploads/2025/06/11/photo2.jpg"
+        {
+            "url": "https://mybucket.s3.ap-northeast-2.amazonaws.com/uploads/2025/06/11/photo1.jpg"
+        },
+        {
+            "url": "https://mybucket.s3.ap-northeast-2.amazonaws.com/uploads/2025/06/11/photo2.jpg"
+        }
     ],
     "tags": ["new tag"],
     # "mentions": ["@mina", "@jinho"],           # 유저 태그
