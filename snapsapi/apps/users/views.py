@@ -199,11 +199,38 @@ class UserProfileUpdateView(UpdateAPIView):
     queryset = Profile.objects.all()
     permission_classes = [IsAuthenticated, IsProfileOwner, IsActiveUser]
     serializer_class = s.UserProfileUpdateSerializer
+
     # read_serializer_class = s.UserSerializer
 
     def get_object(self):
         obj = self.queryset.get(user=self.request.user)
         return obj
+
+
+class UserSearchView(ListAPIView):
+    """
+    쿼리 파라미터로 전달된 유저네임으로 사용자를 검색합니다.
+    - GET /api/users/search/?username=검색어
+    """
+    serializer_class = s.UserSerializer
+    permission_classes = [IsAuthenticated]  # 로그인한 사용자만 검색 가능
+
+    def get_queryset(self):
+        """
+        'username' 쿼리 파라미터가 있으면 username__icontains 필터로
+        대소문자 구분 없이 포함되는 모든 사용자를 검색합니다.
+        """
+        username_query = self.request.query_params.get('username', None)
+
+        if username_query:
+            # username 필드에 검색어가 포함되는(icontains) 사용자를 찾습니다.
+            # exclude(pk=self.request.user.pk)를 통해 검색 결과에서 자기 자신은 제외합니다.
+            return User.objects.filter(
+                username__icontains=username_query
+            ).exclude(pk=self.request.user.pk)
+
+        # 검색어가 없으면 빈 쿼리셋을 반환합니다.
+        return User.objects.none()
 
 
 class GoogleConnectView(_SocialConnectView):

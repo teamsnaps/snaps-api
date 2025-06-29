@@ -8,7 +8,7 @@ from drf_rw_serializers.generics import (
     ListAPIView,
     ListCreateAPIView
 )
-from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly, AllowAny
 from rest_framework.response import Response
 from rest_framework import status
 
@@ -172,3 +172,30 @@ class PresignedURLView(GenericAPIView):
             })
 
         return Response({"results": results}, status=status.HTTP_200_OK)
+
+
+class PostSearchView(ListAPIView):
+    """
+    쿼리 파라미터로 전달된 태그 이름으로 게시물을 검색합니다.
+    - GET /api/posts/search/?tag=검색어
+    """
+    serializer_class = s.PostReadSerializer
+    permission_classes = [AllowAny] # 누구나 검색 가능
+
+    def get_queryset(self):
+        """
+        'tag' 쿼리 파라미터가 있으면 해당 태그를 포함하는 게시물을 검색합니다.
+        """
+        tag_query = self.request.query_params.get('tag', None)
+
+        if tag_query:
+            # Post 모델이 'tags'라는 이름의 ManyToManyField를 통해 Tag 모델과 연결되어 있고,
+            # Tag 모델에 'name' 필드가 있다고 가정합니다.
+            # distinct()를 사용하여 중복 게시물이 반환되는 것을 방지합니다.
+            return Post.objects.filter(
+                tags__name__icontains=tag_query
+            ).distinct()
+
+        # 검색어가 없으면 빈 쿼리셋을 반환합니다.
+        return Post.objects.none()
+
