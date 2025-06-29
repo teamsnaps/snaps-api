@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from snapsapi.apps.posts.models import Post
 from snapsapi.apps.comments.models import Comment
-from snapsapi.apps.users.serializers import UserLoginSerializer
+from snapsapi.apps.users.serializers import UserSerializer
 
 from rest_framework import serializers
 
@@ -14,7 +14,7 @@ class CommentReadSerializer(serializers.ModelSerializer):
     댓글 조회(GET)를 위한 Serializer입니다.
     작성자 정보와 대댓글(replies)을 포함합니다.
     """
-    user = UserLoginSerializer(read_only=True)   # Todo: modified serializer
+    user = UserSerializer(read_only=True)
     replies = serializers.SerializerMethodField()
 
     class Meta:
@@ -96,6 +96,7 @@ class CommentUpdateSerializer(serializers.ModelSerializer):
     댓글 수정(PATCH)을 위한 Serializer입니다.
     'content' 필드만 수정 가능하도록 제한합니다.
     """
+
     class Meta:
         model = Comment
         fields = ['content']
@@ -123,6 +124,7 @@ class CommentUpdateSerializer(serializers.ModelSerializer):
         읽기용 Serializer를 사용하여 일관된 응답을 제공합니다.
         """
         return CommentReadSerializer(instance, context=self.context).data
+
 
 class CommentDeleteSerializer:
     pass
