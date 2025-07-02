@@ -89,4 +89,4 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     bio = models.TextField(max_length=50, blank=True)
     # image = models.ImageField(upload_to='profiles/', blank=True, null=True)
-    image_url = models.CharField(max_length=255, default='')
+    image_url = models.CharField(max_length=255, default='/media/users/default/user.png')
