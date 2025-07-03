@@ -15,7 +15,7 @@ class UserSerializer(serializers.Serializer):
     """
     uid = serializers.CharField(read_only=True)
     username = serializers.CharField(read_only=True)
-    image_url = serializers.CharField(source='profile.image_url', read_only=True)
+    image_url = serializers.CharField(source='profile.image_url', read_only=True, default='/media/users/default/user.png')
     bio = serializers.CharField(source='profile.bio', read_only=True)
     is_me = serializers.SerializerMethodField()
     is_following = serializers.SerializerMethodField()
