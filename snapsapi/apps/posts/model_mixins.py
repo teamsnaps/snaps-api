@@ -1,3 +1,4 @@
+from django.db.models import F
 from typing import TYPE_CHECKING, Any
 from datetime import datetime, UTC
 
@@ -48,3 +49,15 @@ class PostMixin:
         self.is_deleted = True
         self.deleted_at = datetime.now(UTC)
         self.save(update_fields=['is_deleted', 'deleted_at', 'updated_at'])
+
+    def increment_comments_count(self: 'Post'):
+        # self.comments_count = self.comments_count + 1
+        self.comments_count = F('comments_count') + 1
+        self.save(update_fields=['comments_count'])
+        self.refresh_from_db(fields=['comments_count'])
+
+    def decrement_comments_count(self: 'Post'):
+        if self.comments_count > 0:
+            self.comments_count = F('comments_count') - 1
+            self.save(update_fields=['comments_count'])
+            self.refresh_from_db(fields=['comments_count'])

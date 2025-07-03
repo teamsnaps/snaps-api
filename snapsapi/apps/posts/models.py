@@ -18,6 +18,7 @@ class Tag(models.Model):
     uid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
     name = models.CharField(max_length=255, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    image_url = models.CharField(max_length=255, default='/media/users/default/user.png')
 
     objects = mm.TagManager()
 
@@ -29,7 +30,7 @@ class PostImage(models.Model):
     uid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
     post = models.ForeignKey('Post', on_delete=models.CASCADE, related_name='images')
     url = models.CharField(max_length=255, null=False, blank=False)
-    order = models.PositiveIntegerField(default=0)  # 이미지 순서
+    order = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
     is_deleted = models.BooleanField(default=False)

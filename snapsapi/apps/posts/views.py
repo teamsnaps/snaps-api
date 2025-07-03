@@ -40,13 +40,9 @@ class PostListCreateView(ListCreateAPIView):
     read_serializer_class = s.PostReadSerializer
     write_serializer_class = s.PostWriteSerializer
 
-
     def get_queryset(self):
-        return (
+        queryset = (
             Post.objects.filter(is_deleted=False)
-            # .annotate(
-            #     likes_count=Count('likes', distinct=True),
-            #     comments_count=Count('comments', distinct=True))
             .prefetch_related(
                 'user__profile',
                 'images',
@@ -54,6 +50,15 @@ class PostListCreateView(ListCreateAPIView):
             )
             .order_by('-created_at')
         )
+
+        tag_query = self.request.query_params.get('tag', None)
+
+        if tag_query:
+            queryset = queryset.filter(
+                tags__name__icontains=tag_query
+            ).distinct()
+
+        return queryset
 
     # @extend_schema(
     #     summary=_("새 게시글 작성"),
@@ -173,14 +178,14 @@ class PresignedURLView(GenericAPIView):
 
         return Response({"results": results}, status=status.HTTP_200_OK)
 
-
+# Todo: Deprecated
 class PostSearchView(ListAPIView):
     """
     쿼리 파라미터로 전달된 태그 이름으로 게시물을 검색합니다.
     - GET /api/posts/search/?tag=검색어
     """
     serializer_class = s.PostReadSerializer
-    permission_classes = [AllowAny] # 누구나 검색 가능
+    permission_classes = [AllowAny]  # 누구나 검색 가능
 
     def get_queryset(self):
         """
@@ -198,4 +203,3 @@ class PostSearchView(ListAPIView):
 
         # 검색어가 없으면 빈 쿼리셋을 반환합니다.
         return Post.objects.none()
-

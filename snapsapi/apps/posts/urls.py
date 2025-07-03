@@ -10,8 +10,6 @@ app_name = 'posts'
 urlpatterns = []
 
 urlpatterns += [
-    path('search/', views.PostSearchView.as_view(), name='posts-search'),
-
     path('', views.PostListCreateView.as_view(), name='posts-list-create'),
     path('<uuid:uid>/', views.PostDetailView.as_view(), name='posts-detail'),
     path('<uuid:uid>/comments/', CommentListCreateView.as_view(), name='posts-create-comment'),
