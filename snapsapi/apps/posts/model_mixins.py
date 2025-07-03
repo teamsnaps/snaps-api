@@ -24,7 +24,7 @@ class PostMixin:
         """
         from snapsapi.apps.posts.models import PostImage
         objs = [
-            PostImage(post=self, url=url, order=idx)
+            PostImage(post=self, url=f'/{url}', order=idx)
             for idx, url in enumerate(urls)
         ]
         PostImage.objects.bulk_create(objs)

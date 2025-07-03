@@ -24,7 +24,7 @@ class PostManager(models.Manager):
         from snapsapi.apps.posts.models import PostImage
         post = self.create(user=user, caption=caption, **extra_fields)
         for idx, url in enumerate(images):
-            PostImage.objects.create(post=post, url=url, order=idx)
+            PostImage.objects.create(post=post, url=f'/{url}', order=idx)
         post.update_tags(tags)
         return post
 
