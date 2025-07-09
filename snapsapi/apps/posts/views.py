@@ -18,8 +18,6 @@ from snapsapi.apps.posts import serializers as s
 
 from snapsapi.apps.posts.serializers import (
     PostReadSerializer,
-    PostUpdateSerializer,
-    PostDeleteSerializer,
     PresignedURLRequestSerializer,
 )
 from snapsapi.apps.posts.schemas import (
@@ -129,12 +127,12 @@ class PostDetailView(RetrieveUpdateDestroyAPIView):
         return Response({'detail': 'soft deleted'}, status=status.HTTP_204_NO_CONTENT)
 
 
-class PresignedURLView(GenericAPIView):
-    # """
-    # Generates presigned URLs for S3.
-    # This view does not perform any database operations, so it does not
-    # require a transaction.
-    # """
+class PostImageUploadURLView(GenericAPIView):
+    """
+    Generates presigned URLs for S3 to upload post images.
+    This view does not perform any database operations, so it does not
+    require a transaction.
+    """
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
@@ -178,28 +176,29 @@ class PresignedURLView(GenericAPIView):
 
         return Response({"results": results}, status=status.HTTP_200_OK)
 
-# Todo: Deprecated
-class PostSearchView(ListAPIView):
-    """
-    Search for posts by tag name passed as a query parameter.
-    - GET /api/posts/search/?tag=search_term
-    """
-    serializer_class = s.PostReadSerializer
-    permission_classes = [AllowAny]  # Anyone can search
-
-    def get_queryset(self):
-        """
-        If 'tag' query parameter exists, search for posts containing that tag.
-        """
-        tag_query = self.request.query_params.get('tag', None)
-
-        if tag_query:
-            # Assumes the Post model is connected to the Tag model through a ManyToManyField named 'tags',
-            # and that the Tag model has a 'name' field.
-            # Using distinct() to prevent duplicate posts from being returned.
-            return Post.objects.filter(
-                tags__name__icontains=tag_query
-            ).distinct()
-
-        # Return an empty queryset if there's no search term.
-        return Post.objects.none()
+# This class is deprecated and should not be used.
+# Use the tag filtering in PostListCreateView.get_queryset() instead.
+# class PostSearchView(ListAPIView):
+#     """
+#     Search for posts by tag name passed as a query parameter.
+#     - GET /api/posts/search/?tag=search_term
+#     """
+#     serializer_class = s.PostReadSerializer
+#     permission_classes = [AllowAny]  # Anyone can search
+#
+#     def get_queryset(self):
+#         """
+#         If 'tag' query parameter exists, search for posts containing that tag.
+#         """
+#         tag_query = self.request.query_params.get('tag', None)
+#
+#         if tag_query:
+#             # Assumes the Post model is connected to the Tag model through a ManyToManyField named 'tags',
+#             # and that the Tag model has a 'name' field.
+#             # Using distinct() to prevent duplicate posts from being returned.
+#             return Post.objects.filter(
+#                 tags__name__icontains=tag_query
+#             ).distinct()
+#
+#         # Return an empty queryset if there's no search term.
+#         return Post.objects.none()

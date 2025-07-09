@@ -14,7 +14,7 @@ urlpatterns += [
     path('<uuid:uid>/', views.PostDetailView.as_view(), name='posts-detail'),
     path('<uuid:uid>/comments/', CommentListCreateView.as_view(), name='comments-list-create'),
     path('<uuid:uid>/likes/', PostLikeToggleView.as_view(), name='like-toggle'),
-    path('presigned-url/', views.PresignedURLView.as_view(), name='posts-presigned-url'),
+    path('presigned-url/', views.PostImageUploadURLView.as_view(), name='posts-presigned-url'),
 ]
 
 # urlpatterns = format_suffix_patterns(urlpatterns)

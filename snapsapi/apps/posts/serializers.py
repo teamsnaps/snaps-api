@@ -20,8 +20,8 @@ class PostImageURLSerializer(serializers.ModelSerializer):
         fields = ['url']
 
 
-class ImageURLSerializer(serializers.Serializer):
-    """A simple serializer to validate objects with a 'url' key."""
+class PostImageURLInputSerializer(serializers.Serializer):
+    """A serializer to validate post image URL input objects with a 'url' key."""
     url = serializers.CharField()
 
 
@@ -72,24 +72,29 @@ class PostReadSerializer(serializers.ModelSerializer):
 
 class PostWriteSerializer(serializers.ModelSerializer):
     """
-    Serializer for creating a new post.
+    Serializer for creating and updating posts.
     """
     caption = serializers.CharField(
         allow_blank=True,
+        required=False,
         help_text=_("Write a description for your post. It can be left blank.")
     )
-    images = ImageURLSerializer(
+    images = PostImageURLInputSerializer(
         many=True,
         write_only=True,
+        required=False,
         help_text=_("List of images to add to the post. Must be an array in the format `[{'url': 'https://...'}]`")
     )
-    # images = PostImageURLSerializer(many=True, read_only=True)
     tags = serializers.ListField(
-        child=serializers.CharField(max_length=50),
+        child=serializers.CharField(max_length=255),
         allow_empty=True,
         write_only=True,
+        required=False,
         help_text=_("Enter tags to categorize your post. Example: `['travel', 'landscape']`")
     )
+    is_public = serializers.BooleanField(required=False, help_text="Whether the post is public")
+    is_active = serializers.BooleanField(required=False, help_text="Whether the post is active")
+    is_deleted = serializers.BooleanField(required=False, help_text="Whether the post is deleted")
 
     class Meta:
         model = Post
@@ -98,7 +103,20 @@ class PostWriteSerializer(serializers.ModelSerializer):
             'images',
             'tags',
             'is_public',
+            'is_active',
+            'is_deleted',
         ]
+
+    def validate_tags(self, value):
+        """
+        Ensure tags is a list of non-empty strings
+        """
+        if not isinstance(value, list):
+            raise serializers.ValidationError("Tags must be a list.")
+        for tag in value:
+            if not isinstance(tag, str) or not tag.strip():
+                raise serializers.ValidationError("Each tag must be a non-empty string.")
+        return value
 
     def create(self, validated_data):
         request = self.context.get('request')
@@ -112,16 +130,35 @@ class PostWriteSerializer(serializers.ModelSerializer):
         images_data = validated_data.pop('images', None)
         tags_data = validated_data.pop('tags', None)
 
-        instance = super().update(instance, validated_data)
+        # Update simple fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
 
+        # Update images if provided
         if images_data is not None:
             instance.delete_images()
-            instance.attach_images(images_data)
+            instance.attach_images([item['url'] for item in images_data])
 
+        # Update tags if provided
         if tags_data is not None:
             instance.update_tags(tags_data)
 
+        instance.save()
         return instance
+
+    def to_representation(self, instance):
+        """
+        Convert the object to a representation suitable for API responses.
+        """
+        return {
+            "uid": str(instance.uid),
+            "caption": instance.caption,
+            "images": [{'url': img.url} for img in instance.images.all()],
+            "tags": [tag.name for tag in instance.tags.all()],
+            "is_public": instance.is_public,
+            "is_active": instance.is_active,
+            "is_deleted": instance.is_deleted,
+        }
 
 
 # Main Serializer used for GET requests (list view)
@@ -187,86 +224,7 @@ class PostListSerializer(serializers.ModelSerializer):
         }
 
 
-class PostUpdateSerializer(serializers.ModelSerializer):
-    caption = serializers.CharField(allow_blank=True, required=False, help_text="게시글 내용")
-    tags = serializers.ListField(child=serializers.CharField(max_length=255), required=False, help_text="태그 문자열 리스트")
-    images = serializers.ListField(child=serializers.CharField(max_length=255), required=False, help_text="이미지 URL 리스트")
-    is_public = serializers.BooleanField(required=False, help_text="공개 여부")
-    is_active = serializers.BooleanField(required=False, help_text="활성 여부")
-    is_deleted = serializers.BooleanField(required=False, help_text="삭제 여부")
-
-    class Meta:
-        model = Post
-        fields = [
-            'caption',
-            'tags',
-            'images',
-            'is_public',
-            'is_active',
-            'is_deleted',
-        ]
-
-    def validate_tags(self, value):
-        """
-        # Ensure tags is a list of non-empty strings
-        """
-        if not isinstance(value, list):
-            raise serializers.ValidationError("Tags must be a list.")
-        for tag in value:
-            if not isinstance(tag, str) or not tag.strip():
-                raise serializers.ValidationError("Each tag must be a non-empty string.")
-        return value
-
-    # def validate_images(self, value):
-    #     """
-    #     # Ensure images is a list of valid URLs
-    #     """
-    #     if not isinstance(value, list):
-    #         raise serializers.ValidationError("Images must be a list.")
-    #     validator = URLValidator()
-    #     for url in value:
-    #         try:
-    #             validator(url)
-    #         except DjangoValidationError:
-    #             raise serializers.ValidationError(f"Invalid URL: '{url}'")
-    #     return value
-
-    def update(self, instance, validated_data):
-        tags_data = validated_data.pop('tags', None)
-        images_data = validated_data.pop('images', None)
-
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
-
-        if images_data is not None:
-            instance.delete_images()
-            instance.attach_images(images_data)
-
-        if tags_data is not None:
-            instance.update_tags(tags_data)
-
-        instance.save()
-        return instance
-
-    def to_representation(self, instance):
-        """
-        객체를 직렬화하여 API 응답 형식으로 변환합니다.
-        """
-        # return {
-        #     "uid": str(instance.uid),
-        #     "caption": instance.caption,
-        #     "images": [img.url for img in instance.images.all()],
-        #     "tags": [tag.name for tag in instance.tags.all()],
-        #     "is_public": instance.is_public,
-        #     "is_active": instance.is_active,
-        #     "is_deleted": instance.is_deleted,
-        # }
-        return {
-            "uid": str(instance.uid),
-            "caption": instance.caption,
-            "images": [img.url for img in instance.images.all()],
-            "tags": [tag.name for tag in instance.tags.all()]
-        }
+# PostUpdateSerializer was removed and its functionality consolidated into PostWriteSerializer
 
 
 # --- User 정보를 위한 간단한 Serializer ---
@@ -277,8 +235,7 @@ class UserInfoSerializer(serializers.ModelSerializer):
         fields = ['uid', 'username']  # 필요에 따라 'profile_image' 등 추가 가능
 
 
-class PostDeleteSerializer(serializers.Serializer):
-    pass
+# PostDeleteSerializer was removed as it was empty and not used
 
 
 class FileInfoSerializer(serializers.Serializer):

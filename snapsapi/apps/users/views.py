@@ -177,7 +177,10 @@ class UsernameUpdateView(UpdateAPIView):
         return self.request.user
 
 
-class UserProfileImagePresignedURLView(GenericAPIView):
+class ProfileImageUploadURLView(GenericAPIView):
+    """
+    Generates presigned URLs for S3 to upload profile images.
+    """
     permission_classes = [IsAuthenticated]
     serializer_class = s.UserProfileImageFileInfoSerializer
 
@@ -233,27 +236,10 @@ class UserSearchView(ListAPIView):
         return User.objects.none()
 
 
-class GoogleConnectView(_SocialConnectView):
+class SocialConnectView(_SocialConnectView):
+    """
+    View for connecting social accounts to an existing user account.
+    Currently only supports Google, but can be extended to support other providers.
+    """
     adapter_class = GoogleOAuth2Adapter
     client_class = OAuth2Client
-    # # noinspection PyAttributeOutsideInit
-    # def set_adapter_class(self, provider: str):
-    #     if provider == 'google':
-    #         self.adapter_class = GoogleOAuth2Adapter
-    #     elif provider == 'kakao':
-    #         self.adapter_class = KakaoOAuth2Adapter
-    #     elif provider == 'naver':
-    #         self.adapter_class = NaverOAuth2Adapter
-    #     else:
-    #         print(provider)
-    #         raise Exception('Unsupported provider')
-
-    # def post(self, request, *args, **kwargs):
-    #     print("Request Data:", request.data)  # 디버깅 정보 출력
-    #     # provider = request.data.get('provider')
-    #     # self.set_adapter_class(provider)
-    #     # request.data.pop('provider')
-    #     print("Request Data:", request.data)  # 디버깅 정보 출력
-    #     print("Adapter Class:", self.adapter_class)  # 확인용 debug 출력
-    #
-    #     return super().post(request, *args, **kwargs)

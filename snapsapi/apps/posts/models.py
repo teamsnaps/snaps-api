@@ -10,7 +10,8 @@ from snapsapi.apps.posts import model_mixins as mx
 # from bson.objectid import ObjectId
 # import shortuuid
 
-def generate_uuid():
+def generate_post_uuid():
+    """Generate a UUID for post-related models."""
     return uuid.uuid4()
 
 
