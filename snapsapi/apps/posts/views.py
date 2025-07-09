@@ -19,6 +19,7 @@ from snapsapi.apps.posts import serializers as s
 from snapsapi.apps.posts.serializers import (
     PostReadSerializer,
     PresignedURLRequestSerializer,
+    TagSerializer,
 )
 from snapsapi.apps.posts.schemas import (
     POST_CREATE_REQUEST_EXAMPLE,
@@ -27,7 +28,7 @@ from snapsapi.apps.posts.schemas import (
     PRESIGNED_POST_URL_REQUEST_EXAMPLE,
 )
 from snapsapi.apps.core.pagination import StandardResultsSetPagination
-from snapsapi.apps.posts.models import Post
+from snapsapi.apps.posts.models import Post, Tag
 from snapsapi.utils.aws import create_presigned_post, build_posts_image_object_name
 
 
@@ -202,3 +203,13 @@ class PostImageUploadURLView(GenericAPIView):
 #
 #         # Return an empty queryset if there's no search term.
 #         return Post.objects.none()
+
+
+class TagListView(ListAPIView):
+    """
+    List all tags.
+    - GET /api/posts/tags/
+    """
+    queryset = Tag.objects.filter(is_featured=True)
+    serializer_class = TagSerializer
+    permission_classes = [AllowAny]  # Anyone can view tags

@@ -238,6 +238,15 @@ class UserInfoSerializer(serializers.ModelSerializer):
 # PostDeleteSerializer was removed as it was empty and not used
 
 
+class TagSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the Tag model.
+    """
+    class Meta:
+        model = Tag
+        fields = ['uid', 'name', 'image_url', 'is_featured']
+
+
 class FileInfoSerializer(serializers.Serializer):
     file_name = serializers.CharField()
     file_type = serializers.CharField()

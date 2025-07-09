@@ -20,6 +20,7 @@ class Tag(models.Model):
     name = models.CharField(max_length=255, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     image_url = models.CharField(max_length=255, default='/media/users/default/user.png')
+    is_featured = models.BooleanField(default=False, help_text="운영자가 특별히 지정한 태그 여부")
 
     objects = mm.TagManager()
 

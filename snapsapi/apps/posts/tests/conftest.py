@@ -38,7 +38,7 @@ def superuser1():
 
 @pytest.fixture
 def tag1():
-    return m.Tag.objects.create(name="testtag")
+    return m.Tag.objects.create(name="testtag", is_featured=True)
 
 
 @pytest.fixture
