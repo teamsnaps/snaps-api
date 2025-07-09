@@ -8,6 +8,6 @@ urlpatterns = []
 
 urlpatterns += [
     # path('', views.CommentListCreateView.as_view(), name='posts-list-create'),
-    path('<uuid:uid>/', views.CommentDetailView.as_view(), name='posts-detail'),
+    path('<uuid:uid>/', views.CommentDetailView.as_view(), name='comments-detail'),
     path('<uuid:uid>/likes/', CommentLikeToggleView.as_view(), name='comment-like-toggle'),
 ]

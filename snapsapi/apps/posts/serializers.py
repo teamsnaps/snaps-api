@@ -103,9 +103,7 @@ class PostWriteSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         request = self.context.get('request')
         caption = validated_data.get('caption', '')
-        print(validated_data)
         images = [item['url'] for item in validated_data.get('images', [])]
-        # print(validated_data)
         tags = validated_data.get('tags', [])
         post = Post.objects.create_post(request.user, caption, images, tags)
         return post

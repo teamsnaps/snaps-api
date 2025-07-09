@@ -3,6 +3,8 @@ from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIV
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
+
+from snapsapi.apps.comments.permissions import IsCommentOwner
 from snapsapi.apps.comments.models import Comment
 from snapsapi.apps.comments.serializers import (
     CommentReadSerializer,
@@ -74,7 +76,7 @@ class CommentListCreateView(ListCreateAPIView):
 
 class CommentDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Comment.objects.filter(is_deleted=False)
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsCommentOwner]
     lookup_field = 'uid'
 
     http_method_names = ['patch', 'delete', 'head', 'options']

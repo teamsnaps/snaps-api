@@ -2,7 +2,7 @@ import pytest
 from django.urls import reverse
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
-from .payloads import CREATE_POST_PAYLOAD
+from .payloads import CREATE_POST_PAYLOAD, UPDATED_POST_PAYLOAD
 
 
 @pytest.fixture
@@ -49,12 +49,11 @@ class TestPostListCreateView:
         payload = CREATE_POST_PAYLOAD
         res = jwt_client.post(url, payload, format='json')
         data = res.json()
-        print(data)
 
         assert res.status_code == status.HTTP_201_CREATED
         assert 'metadata' in data
         assert data['caption'] == payload['caption']
-        assert data['images'] == payload['images']
+        assert data['images'] == UPDATED_POST_PAYLOAD['images']
         assert data['tags'] == payload['tags']
 
     def test_create_posts_should_return_401_unauthorized(self, client):

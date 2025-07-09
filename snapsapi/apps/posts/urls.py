@@ -12,8 +12,8 @@ urlpatterns = []
 urlpatterns += [
     path('', views.PostListCreateView.as_view(), name='posts-list-create'),
     path('<uuid:uid>/', views.PostDetailView.as_view(), name='posts-detail'),
-    path('<uuid:uid>/comments/', CommentListCreateView.as_view(), name='posts-create-comment'),
-    path('<uuid:uid>/likes/', PostLikeToggleView.as_view(), name='posts-create-comment'),
+    path('<uuid:uid>/comments/', CommentListCreateView.as_view(), name='comments-list-create'),
+    path('<uuid:uid>/likes/', PostLikeToggleView.as_view(), name='like-toggle'),
     path('presigned-url/', views.PresignedURLView.as_view(), name='posts-presigned-url'),
 ]
 
