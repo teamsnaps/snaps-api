@@ -61,18 +61,18 @@ class PostListCreateView(ListCreateAPIView):
         return queryset
 
     # @extend_schema(
-    #     summary=_("새 게시글 작성"),
-    #     description=_("사용자는 이 엔드포인트를 통해 새로운 게시글을 작성할 수 있습니다. 게시글에는 여러 개의 이미지, 캡션(내용), 그리고 태그를 포함할 수 있습니다."),
+    #     summary=_("Create New Post"),
+    #     description=_("Users can create a new post through this endpoint. Posts can include multiple images, caption (content), and tags."),
     #     request=PostCreateSerializer,
     #     examples=POST_CREATE_REQUEST_EXAMPLE,
     #     responses={
     #         status.HTTP_201_CREATED: OpenApiResponse(
     #             response=PostReadSerializer,
-    #             description=_("게시글이 성공적으로 생성되었습니다. 응답 본문에는 생성된 게시글의 상세 정보가 포함됩니다."),
+    #             description=_("Post created successfully. The response body includes detailed information about the created post."),
     #             examples=POST_CREATE_RESPONSE_EXAMPLE,
     #         ),
     #         status.HTTP_400_BAD_REQUEST: OpenApiResponse(
-    #             description=_("요청 형식이 올바르지 않습니다. 필수 필드가 누락되었거나 데이터 형식이 잘못된 경우 이 오류가 발생할 수 있습니다.")
+    #             description=_("Invalid request format. This error may occur if required fields are missing or data format is incorrect.")
     #         ),
     #     },
     #     tags=["Posts"],
@@ -112,15 +112,15 @@ class PostDetailView(RetrieveUpdateDestroyAPIView):
     #     return PostDeleteSerializer
 
     @extend_schema(
-        summary="게시글 삭제",
-        description="게시글을 soft delete 처리합니다. (is_deleted 플래그 설정)",
+        summary="Delete Post",
+        description="Soft delete a post (sets the is_deleted flag)",
         responses={
             status.HTTP_204_NO_CONTENT: OpenApiResponse(
-                description="게시글 삭제 성공",
+                description="Post deleted successfully",
                 examples=[OpenApiExample("Success Response", value={'detail': 'soft deleted'})]
             ),
-            # status.HTTP_204_NO_CONTENT: OpenApiResponse(description="게시글 삭제 성공 (No Content)"),
-            status.HTTP_404_NOT_FOUND: OpenApiResponse(description="게시글을 찾을 수 없음"),
+            # status.HTTP_204_NO_CONTENT: OpenApiResponse(description="Post deleted successfully (No Content)"),
+            status.HTTP_404_NOT_FOUND: OpenApiResponse(description="Post not found"),
         }
     )
     def destroy(self, request, *args, **kwargs):
@@ -138,19 +138,19 @@ class PresignedURLView(GenericAPIView):
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
-        summary="게시글 이미지 업로  드 URL 생성",
-        description="게시글 이미지 업로드 URL 생성을 요청합니다.",
+        summary="Generate Post Image Upload URL",
+        description="Request to generate a URL for uploading post images.",
         request=PresignedURLRequestSerializer,
         examples=PRESIGNED_POST_URL_REQUEST_EXAMPLE,
         responses={
             # status.HTTP_201_CREATED: OpenApiResponse(
             #     # response=PostCreateSerializer,
-            #     description="게시글 등록 성공",
+            #     description="Post registration successful",
             #     examples=PRESIGNED_POST_URL_RESPONSE_EXAMPLE,
             # ),
             status.HTTP_200_OK: PRESIGNED_POST_URL_RESPONSE_EXAMPLE,
             status.HTTP_400_BAD_REQUEST: OpenApiResponse(
-                description="잘못된 요청"
+                description="Invalid request"
             ),
         },
         auth=None,
@@ -181,25 +181,25 @@ class PresignedURLView(GenericAPIView):
 # Todo: Deprecated
 class PostSearchView(ListAPIView):
     """
-    쿼리 파라미터로 전달된 태그 이름으로 게시물을 검색합니다.
-    - GET /api/posts/search/?tag=검색어
+    Search for posts by tag name passed as a query parameter.
+    - GET /api/posts/search/?tag=search_term
     """
     serializer_class = s.PostReadSerializer
-    permission_classes = [AllowAny]  # 누구나 검색 가능
+    permission_classes = [AllowAny]  # Anyone can search
 
     def get_queryset(self):
         """
-        'tag' 쿼리 파라미터가 있으면 해당 태그를 포함하는 게시물을 검색합니다.
+        If 'tag' query parameter exists, search for posts containing that tag.
         """
         tag_query = self.request.query_params.get('tag', None)
 
         if tag_query:
-            # Post 모델이 'tags'라는 이름의 ManyToManyField를 통해 Tag 모델과 연결되어 있고,
-            # Tag 모델에 'name' 필드가 있다고 가정합니다.
-            # distinct()를 사용하여 중복 게시물이 반환되는 것을 방지합니다.
+            # Assumes the Post model is connected to the Tag model through a ManyToManyField named 'tags',
+            # and that the Tag model has a 'name' field.
+            # Using distinct() to prevent duplicate posts from being returned.
             return Post.objects.filter(
                 tags__name__icontains=tag_query
             ).distinct()
 
-        # 검색어가 없으면 빈 쿼리셋을 반환합니다.
+        # Return an empty queryset if there's no search term.
         return Post.objects.none()

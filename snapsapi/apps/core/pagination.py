@@ -3,9 +3,9 @@ from rest_framework.response import Response
 
 class StandardResultsSetPagination(PageNumberPagination):
     """
-    프로젝트 전반에 걸쳐 사용할 표준 페이지네이션 클래스입니다.
-    - `page_size`: 한 페이지에 보여줄 항목 수
-    - `page_size_query_param`: 클라이언트가 페이지 당 항목 수를 직접 지정할 때 사용하는 쿼리 파라미터
+    Standard pagination class to be used throughout the project.
+    - `page_size`: Number of items to display per page
+    - `page_size_query_param`: Query parameter used when the client wants to specify the number of items per page
     """
     page_size = 10
     page_size_query_param = 'page_size'
@@ -13,7 +13,7 @@ class StandardResultsSetPagination(PageNumberPagination):
 
     def get_paginated_response(self, data):
         """
-        API 응답 형식을 커스터마이징합니다.
+        Customizes the API response format.
         """
         return Response({
             'count': self.page.paginator.count,

@@ -176,8 +176,8 @@ SIMPLE_JWT = {
     # "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     "ACCESS_TOKEN_LIFETIME": timedelta(days=365 * 100),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=365 * 100),
-    "ROTATE_REFRESH_TOKENS": True,  # True로 설정할 경우, refresh token을 보내면 새로운 access token과 refresh token이 반환된다.
-    "BLACKLIST_AFTER_ROTATION": True,  # True로 설정될 경우, 기존에 있던 refresh token은 blacklist가된다
+    "ROTATE_REFRESH_TOKENS": True,  # When set to True, a new access token and refresh token will be returned when a refresh token is sent.
+    "BLACKLIST_AFTER_ROTATION": True,  # When set to True, the existing refresh token will be blacklisted.
     "UPDATE_LAST_LOGIN": True,
     "ALGORITHM": "HS256",
     "SIGNING_KEY": "django-insecure-&(+xf_#r8n16af&68##rdi%bl5+jppvr5*+rd4balg3rpb%=*l",
@@ -251,10 +251,10 @@ SPECTACULAR_SETTINGS = {
     "TITLE": "Snaps-API",
     "DESCRIPTION": "A detailed description of Snaps-API",
     "VERSION": "0.9.0",
-    "SERVE_INCLUDE_SCHEMA": False,  # Swagger에서 schema json 링크 숨기기
+    "SERVE_INCLUDE_SCHEMA": False,  # Hide schema json link in Swagger
     'COMPONENT_SPLIT_REQUEST': True,
     'SCHEMA_COERCE_METHOD_NAMES': ['get', 'post', 'put', 'patch', 'delete'],
-    # 그 외 자세한 옵션은 공식 문서 참고!
+    # For more detailed options, refer to the official documentation!
     'APPEND_COMPONENTS': {
         'paths': {
             '/users/social-login/{format}': None,
@@ -293,11 +293,11 @@ SOCIALACCOUNT_PROVIDERS = {
 # # Google OAuth 2.0 Configure
 GOOGLE_REDIRECT_URL = os.getenv("GOOGLE_REDIRECT_URL")
 
-# allauth/dj-rest-auth 표준 설정
-ACCOUNT_USER_MODEL_USERNAME_FIELD = None  # username 필드 사용 안 함(선택)
-ACCOUNT_EMAIL_REQUIRED = True  # 이메일 필수
-ACCOUNT_USERNAME_REQUIRED = False  # username 없이 회원가입 허용
-ACCOUNT_AUTHENTICATION_METHOD = "email"  # 이메일로 로그인
+# Standard settings for allauth/dj-rest-auth
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None  # Do not use username field (optional)
+ACCOUNT_EMAIL_REQUIRED = True  # Email is required
+ACCOUNT_USERNAME_REQUIRED = False  # Allow registration without username
+ACCOUNT_AUTHENTICATION_METHOD = "email"  # Login using email
 ACCOUNT_EMAIL_VERIFICATION = "optional"  # or "mandatory"
 
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']

@@ -126,18 +126,18 @@ class PostWriteSerializer(serializers.ModelSerializer):
         return instance
 
 
-# GET 요청 (목록 조회) 시 사용할 메인 Serializer
+# Main Serializer used for GET requests (list view)
 class PostListSerializer(serializers.ModelSerializer):
-    # 각 중첩 객체를 만들기 위해 SerializerMethodField를 사용합니다.
+    # Using SerializerMethodField to create each nested object
     metadata = serializers.SerializerMethodField(read_only=True)
     profile = serializers.SerializerMethodField(read_only=True)
     context = serializers.SerializerMethodField(read_only=True)
 
-    # images 필드는 PostImageURLSerializer를 사용하여 배열 형태로 만듭니다.
-    # Post 모델의 PostImage 관련 필드(related_name)가 'images'라고 가정합니다.
+    # The images field uses PostImageURLSerializer to create an array format
+    # Assumes that the PostImage related field (related_name) in the Post model is 'images'
     images = PostImageURLSerializer(many=True, read_only=True)
 
-    # 이 필드들은 View의 get_queryset에서 annotate로 추가된 값들을 사용합니다.
+    # These fields use values added by annotate in the View's get_queryset
     likes_count = serializers.IntegerField(read_only=True)
     comments_count = serializers.IntegerField(read_only=True)
 
@@ -155,21 +155,21 @@ class PostListSerializer(serializers.ModelSerializer):
         )
 
     def get_metadata(self, obj):
-        """metadata 객체를 구성합니다."""
+        """Constructs the metadata object."""
         return {
             "post_uid": obj.uid,
             "user_uid": obj.user.uid
         }
 
     def get_profile(self, obj):
-        """게시글 작성자의 user 객체를 이용해 profile 객체를 구성합니다."""
+        """Constructs the profile object using the post author's user object."""
         user = obj.user
         profile_image = None
-        # User의 Profile에 image 필드가 있고, 이 값이 리스트 형태일 경우 첫 번째 항목을 사용합니다.
+        # If the User's Profile has an image field and this value is a list, use the first item.
         if hasattr(user, 'profile') and user.profile.image:
             if isinstance(user.profile.image, list) and len(user.profile.image) > 0:
                 profile_image = user.profile.image[0]
-            # 문자열일 경우 그대로 사용합니다.
+            # If it's a string, use it as is.
             elif isinstance(user.profile.image, str):
                 profile_image = user.profile.image
 
@@ -179,8 +179,8 @@ class PostListSerializer(serializers.ModelSerializer):
         }
 
     def get_context(self, obj):
-        """context 객체를 구성합니다."""
-        # prefetch_related와 함께 사용하면 효율적입니다.
+        """Constructs the context object."""
+        # More efficient when used with prefetch_related.
         tag_names = list(obj.tags.values_list('name', flat=True))
         return {
             "username": obj.user.username,
