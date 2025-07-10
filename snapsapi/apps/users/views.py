@@ -63,14 +63,14 @@ class SocialLoginView(_SocialLoginView):
 
     @extend_schema(
         operation_id="social_login",
-        summary="소셜 회원가입 / 로그인",
-        description="provider와 access_token을 받아서 소셜 회원가입/로그인 처리를 수행합니다.",
+        summary="Social Registration / Login",
+        description="Processes social registration/login by receiving provider and access_token.",
         request=inline_serializer(
             name="SocialLoginInlineRequest",
             fields={
-                "access_token": serializers.CharField(help_text="소셜 플랫폼에서 발급받은 액세스 토큰"),
+                "access_token": serializers.CharField(help_text="Access token issued by the social platform"),
                 "provider": serializers.ChoiceField(choices=['google', 'kakao', 'naver'],
-                                                    help_text="사용할 소셜 로그인 제공자 (google, kakao, naver 중 하나)"),
+                                                    help_text="Social login provider to use (one of: google, kakao, naver)"),
             }
 
         ),
@@ -108,43 +108,43 @@ class SocialLoginView(_SocialLoginView):
             return super().post(request, *args, **kwargs)
         except OAuth2Error as e:
             return Response(
-                {"detail": "OAuth2 인증에 실패했습니다. 유효한 access_token을 제공해주세요."},
+                {"detail": "OAuth2 authentication failed. Please provide a valid access_token."},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
 
 class FollowToggleView(APIView):
     """
-    특정 유저에 대한 팔로우/언팔로우를 처리하는 토글 방식의 View입니다.
+    A toggle-style View that handles follow/unfollow actions for a specific user.
     """
     permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
-        # URL에서 팔로우할 대상 유저의 uid를 가져옵니다.
+        # Get the uid of the target user to follow from the URL
         follower = request.user
 
         user_to_follow_uid = self.kwargs.get('user_uid')
         following = User.objects.get_user_by_uid(uid=user_to_follow_uid)
 
-        # get_or_create를 사용하여 팔로우 관계를 가져오거나 생성합니다.
-        # created는 새로 생성되었으면 True, 이미 존재했으면 False를 반환합니다.
+        # Use follow method to get or create a follow relationship
+        # 'created' returns True if newly created, False if it already existed
         follow, created = Follow.objects.follow(
             follower=follower,
             following=following
         )
 
         if not created:
-            # 이미 팔로우 관계가 존재했다면, 삭제하여 '언팔로우'를 수행합니다.
+            # If the follow relationship already exists, delete it to perform 'unfollow'
             Follow.objects.unfollow(
                 follower=follower,
                 following=following
             )
 
-        # DB에서 최신 카운트 정보를 가져오기 위해 객체를 새로고침합니다.
+        # Refresh the object to get the latest count information from the database
         following.refresh_from_db()
 
         serializer = s.FollowResponseSerializer({
-            'is_following': created,  # 생성되었으면 True(팔로우 성공), 아니면 False(언팔로우 성공)
+            'is_following': created,  # True if created (follow successful), False if not (unfollow successful)
             'followers_count': following.followers_count,
             'following_count': following.following_count
         })
@@ -212,27 +212,27 @@ class UserProfileUpdateView(UpdateAPIView):
 
 class UserSearchView(ListAPIView):
     """
-    쿼리 파라미터로 전달된 유저네임으로 사용자를 검색합니다.
-    - GET /api/users/search/?username=검색어
+    Searches for users by username passed as a query parameter.
+    - GET /api/users/search/?username=search_term
     """
     serializer_class = s.UserSerializer
-    permission_classes = [IsAuthenticated]  # 로그인한 사용자만 검색 가능
+    permission_classes = [IsAuthenticated]  # Only authenticated users can search
 
     def get_queryset(self):
         """
-        'username' 쿼리 파라미터가 있으면 username__icontains 필터로
-        대소문자 구분 없이 포함되는 모든 사용자를 검색합니다.
+        If the 'username' query parameter exists, searches for all users
+        whose usernames contain the search term (case-insensitive) using the username__icontains filter.
         """
         username_query = self.request.query_params.get('username', None)
 
         if username_query:
-            # username 필드에 검색어가 포함되는(icontains) 사용자를 찾습니다.
-            # exclude(pk=self.request.user.pk)를 통해 검색 결과에서 자기 자신은 제외합니다.
+            # Find users whose username field contains the search term (icontains)
+            # Exclude the current user from search results using exclude(pk=self.request.user.pk)
             return User.objects.filter(
                 username__icontains=username_query
             ).exclude(pk=self.request.user.pk)
 
-        # 검색어가 없으면 빈 쿼리셋을 반환합니다.
+        # Return an empty queryset if there's no search term
         return User.objects.none()
 
 

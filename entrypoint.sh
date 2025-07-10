@@ -3,16 +3,16 @@
 set -e
 
 
-# [검증용 출력] 필요한 환경변수들 확인
-echo "===== ENV 확인 시작 ====="
+# [Verification output] Check required environment variables
+echo "===== ENV CHECK START ====="
 echo "DB_HOST               = ${DB_HOST}"
 echo "DB_PORT               = ${DB_PORT}"
 echo "DB_NAME               = ${DB_NAME}"
 echo "DB_USER               = ${DB_USER}"
-# 민감정보는 로그에 남기지 않는 게 좋지만, 테스트용이라면 아래도 확인 가능
+# It's best not to leave sensitive information in logs, but for testing purposes, you can also check the following
 echo "AWS_STORAGE_BUCKET    = ${AWS_STORAGE_BUCKET_NAME}"
 echo "AWS_S3_CUSTOM_DOMAIN  = ${AWS_S3_CUSTOM_DOMAIN}"
-echo "===== ENV 확인 끝 ====="
+echo "===== ENV CHECK END ====="
 
 sleep 1
 

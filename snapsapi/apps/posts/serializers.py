@@ -16,7 +16,7 @@ user = get_user_model()
 class PostImageURLSerializer(serializers.ModelSerializer):
     class Meta:
         model = PostImage
-        # PostImage 모델에 'url' 필드가 있다고 가정합니다.
+        # Assumes that the PostImage model has a 'url' field.
         fields = ['url']
 
 
@@ -227,12 +227,12 @@ class PostListSerializer(serializers.ModelSerializer):
 # PostUpdateSerializer was removed and its functionality consolidated into PostWriteSerializer
 
 
-# --- User 정보를 위한 간단한 Serializer ---
-# 이 Serializer는 Post 안에 작성자 정보를 표현하기 위해 사용됩니다.
+# --- Simple Serializer for User information ---
+# This Serializer is used to represent author information within a Post.
 class UserInfoSerializer(serializers.ModelSerializer):
     class Meta:
         model = user
-        fields = ['uid', 'username']  # 필요에 따라 'profile_image' 등 추가 가능
+        fields = ['uid', 'username']  # Can add 'profile_image' etc. as needed
 
 
 # PostDeleteSerializer was removed as it was empty and not used

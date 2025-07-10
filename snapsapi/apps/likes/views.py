@@ -12,7 +12,7 @@ from .serializers import LikeResponseSerializer
 
 class PostLikeToggleView(APIView):
     """
-    게시글에 대한 좋아요 토글(생성/삭제)을 처리하는 View입니다.
+    View that handles toggling (creating/deleting) likes for posts.
     """
     permission_classes = [IsAuthenticated]
 
@@ -24,7 +24,7 @@ class PostLikeToggleView(APIView):
         like, created = PostLike.objects.get_or_create(user=user, post=post)
 
         if not created:
-            like.delete() # 이미 존재하면 삭제 (좋아요 취소)
+            like.delete() # Delete if it already exists (unlike)
 
         post.refresh_from_db()
         serializer = LikeResponseSerializer({
@@ -36,7 +36,7 @@ class PostLikeToggleView(APIView):
 
 class CommentLikeToggleView(APIView):
     """
-    댓글에 대한 좋아요 토글(생성/삭제)을 처리하는 View입니다.
+    View that handles toggling (creating/deleting) likes for comments.
     """
     permission_classes = [IsAuthenticated]
 
@@ -48,7 +48,7 @@ class CommentLikeToggleView(APIView):
         like, created = CommentLike.objects.get_or_create(user=user, comment=comment)
 
         if not created:
-            like.delete() # 이미 존재하면 삭제 (좋아요 취소)
+            like.delete() # Delete if it already exists (unlike)
 
         comment.refresh_from_db()
         serializer = LikeResponseSerializer({

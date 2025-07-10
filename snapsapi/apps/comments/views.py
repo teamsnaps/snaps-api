@@ -18,27 +18,27 @@ from snapsapi.apps.posts.models import Post
 
 class CommentListCreateView(ListCreateAPIView):
     """
-    GET: 특정 게시물의 댓글 목록을 조회합니다.
-    POST: 특정 게시물에 새 댓글을 생성합니다.
+    GET: Retrieves the list of comments for a specific post.
+    POST: Creates a new comment on a specific post.
     """
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
         """
-        URL 파라미터(self.kwargs['uid'])로 Post의 uid를 받아,
-        해당 Post에 달린 최상위 댓글들만 필터링합니다.
+        Receives the Post's uid from URL parameter (self.kwargs['uid']),
+        and filters only the top-level comments attached to that Post.
         """
         post_uid = self.kwargs['uid']
-        # select_related와 prefetch_related로 DB 쿼리 성능을 최적화합니다.
+        # Optimizes DB query performance using select_related and prefetch_related
         return Comment.objects.filter(is_deleted=False, post__uid=post_uid, parent__isnull=True) \
             .select_related('user', 'user__profile') \
             .prefetch_related('replies')
 
     def get_serializer_class(self):
         """
-        요청 메서드에 따라 다른 Serializer를 반환합니다.
-        - GET 요청 시: CommentReadSerializer (읽기 전용)
-        - POST 요청 시: CommentCreateSerializer (쓰기 전용)
+        Returns different Serializers based on the request method.
+        - GET request: CommentReadSerializer (read-only)
+        - POST request: CommentCreateSerializer (write-only)
         """
         if self.request.method == 'POST':
             return CommentCreateSerializer
@@ -46,8 +46,8 @@ class CommentListCreateView(ListCreateAPIView):
 
     def get_serializer_context(self):
         """
-        Serializer의 context에 Post 객체를 추가하여 전달합니다.
-        이를 통해 Serializer 내부에서 URL로 받은 Post 정보를 사용할 수 있습니다.
+        Adds the Post object to the Serializer's context.
+        This allows the Serializer to use the Post information received from the URL.
         """
         context = super().get_serializer_context()
         post_uid = self.kwargs['uid']
@@ -56,21 +56,21 @@ class CommentListCreateView(ListCreateAPIView):
 
     def create(self, request, *args, **kwargs):
         """
-        새 댓글을 생성하기 전에 게시물이 삭제되었는지 확인합니다.
+        Checks if the post has been deleted before creating a new comment.
         """
-        # Serializer 컨텍스트를 통해 Post 객체를 가져옵니다.
+        # Get the Post object through the Serializer context
         context = self.get_serializer_context()
         post = context.get('post')
 
-        # 게시물의 is_deleted 플래그를 확인합니다.
+        # Check the is_deleted flag of the post
         if post.is_deleted:
-            # 삭제된 게시물인 경우, 403 Forbidden 에러를 반환합니다.
+            # If the post is deleted, return a 403 Forbidden error
             return Response(
-                {"detail": "삭제된 게시물에는 댓글을 작성할 수 없습니다."},
+                {"detail": "Cannot write comments on a deleted post."},
                 status=status.HTTP_403_FORBIDDEN
             )
 
-        # 게시물이 삭제되지 않았다면, 기본 create 동작을 수행합니다.
+        # If the post is not deleted, perform the default create action
         return super().create(request, *args, **kwargs)
 
 
@@ -84,8 +84,8 @@ class CommentDetailView(RetrieveUpdateDestroyAPIView):
     def get_serializer_class(self):
         """
         Returns the appropriate serializer class based on the request method.
-        - PUT/PATCH: Uses PostUpdateSerializer for validation.
-        - DELETE: Uses an empty PostDeleteSerializer.
+        - PATCH: Uses CommentUpdateSerializer for validation.
+        - DELETE: Uses an empty CommentDeleteSerializer.
         """
         if self.request.method in ['PATCH']:
             return CommentUpdateSerializer
