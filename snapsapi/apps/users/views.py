@@ -243,3 +243,38 @@ class SocialConnectView(_SocialConnectView):
     """
     adapter_class = GoogleOAuth2Adapter
     client_class = OAuth2Client
+
+
+class UserFollowListView(ListAPIView):
+    """
+    Lists followers or following users for a specific user.
+    - GET /api/users/<user_uid>/connections/?type=followers - Lists users who follow the specified user
+    - GET /api/users/<user_uid>/connections/?type=following - Lists users the specified user is following
+    """
+    serializer_class = s.UserSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self):
+        """
+        Returns a queryset of users based on the 'type' query parameter:
+        - 'followers': returns users who follow the specified user
+        - 'following': returns users the specified user is following
+        """
+        user_uid = self.kwargs.get('user_uid')
+        connection_type = self.request.query_params.get('type', 'followers')
+
+        try:
+            user = User.objects.get_user_by_uid(uid=user_uid)
+        except:
+            return User.objects.none()
+
+        if connection_type == 'followers':
+            # Get users who follow the specified user
+            follower_relations = Follow.objects.filter(following=user)
+            return User.objects.filter(id__in=follower_relations.values('follower_id'))
+        elif connection_type == 'following':
+            # Get users the specified user is following
+            following_relations = Follow.objects.filter(follower=user)
+            return User.objects.filter(id__in=following_relations.values('following_id'))
+        else:
+            return User.objects.none()
