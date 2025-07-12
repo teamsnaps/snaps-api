@@ -4,7 +4,7 @@ from django.contrib.auth import get_user, get_user_model
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
-from snapsapi.apps.users.serializers import UserLoginSerializer, UserSerializer
+from snapsapi.apps.users.serializers import SocialLoginResponseSerializer, UserSerializer
 from snapsapi.apps.posts.models import Post, PostImage, Tag
 from snapsapi.apps.likes.models import PostLike
 from django.core.validators import URLValidator
@@ -254,3 +254,5 @@ class FileInfoSerializer(serializers.Serializer):
 
 class PresignedURLRequestSerializer(serializers.Serializer):
     files = FileInfoSerializer(many=True)
+
+

@@ -1,5 +1,8 @@
 from django.urls import path
-from snapsapi.apps.core.views import home, health_check
+from snapsapi.apps.core.views import (
+    # home,
+    health_check,
+)
 
 app_name = 'core'
 

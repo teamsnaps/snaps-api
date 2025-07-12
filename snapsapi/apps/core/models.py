@@ -6,6 +6,7 @@ from bson.objectid import ObjectId
 import shortuuid
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
+from datetime import datetime, UTC
 
 from snapsapi.apps.core import model_managers as mm
 
@@ -71,3 +72,61 @@ def decrement_follow_counts(sender, instance, **kwargs):
 
     following.followers_count = models.F('followers_count') - 1
     following.save(update_fields=['followers_count'])
+
+
+class Collection(models.Model):
+    uid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='owned_collections')
+    posts = models.ManyToManyField('posts.Post', blank=True, related_name='collections')
+    is_public = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=True)
+    is_deleted = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+
+    objects = mm.CollectionManager()
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.owner.username}'s collection: {self.name}"
+
+    def soft_delete(self):
+        """
+        Soft-deletes the collection.
+        """
+        if self.is_deleted:
+            return
+
+        self.is_deleted = True
+        self.deleted_at = datetime.now(UTC)
+        self.save(update_fields=['is_deleted', 'deleted_at', 'updated_at'])
+
+    def can_user_add_posts(self, user):
+        """
+        Check if a user can add posts to this collection.
+        A user can add posts if they are the owner or a member of the collection.
+
+        :param user: User instance to check
+        :return: Boolean indicating if the user can add posts
+        """
+        if user == self.owner:
+            return True
+
+        return self.members.filter(user=user).exists()
+
+
+class CollectionMember(models.Model):
+    collection = models.ForeignKey('Collection', on_delete=models.CASCADE, related_name='members')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='collection_memberships')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('collection', 'user')
+
+    def __str__(self):
+        return f"{self.user.username} in {self.collection.name}"

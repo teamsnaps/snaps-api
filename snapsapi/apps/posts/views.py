@@ -51,10 +51,21 @@ class PostListCreateView(ListCreateAPIView):
         )
 
         tag_query = self.request.query_params.get('tag', None)
+        keyword_query = self.request.query_params.get('keyword', None)
 
-        if tag_query:
+        # Only one of tag or keyword can be used at a time
+        if tag_query and keyword_query:
+            # If both are provided, prioritize tag query
             queryset = queryset.filter(
                 tags__name__icontains=tag_query
+            ).distinct()
+        elif tag_query:
+            queryset = queryset.filter(
+                tags__name__icontains=tag_query
+            ).distinct()
+        elif keyword_query:
+            queryset = queryset.filter(
+                caption__icontains=keyword_query
             ).distinct()
 
         return queryset

@@ -36,7 +36,6 @@ class PostManager(models.Manager):
         )  # Todo: Unresolved attribute reference error in Pycharm
 
 
-
 class TagManager(models.Manager):
     def create_tags(self, tags) -> list['Tag']:
         tag_objs = []

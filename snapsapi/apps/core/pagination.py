@@ -1,6 +1,7 @@
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
+
 class StandardResultsSetPagination(PageNumberPagination):
     """
     Standard pagination class to be used throughout the project.

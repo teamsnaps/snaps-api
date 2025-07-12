@@ -26,14 +26,14 @@ from snapsapi.apps.users.permissions import IsProfileOwner, IsActiveUser
 
 from snapsapi.apps.users import serializers as s
 
-# from snapsapi.apps.users.serializers import (
+from snapsapi.apps.users.serializers import (
 #     SocialLoginWriteSerializer,
 #     SocialLoginReadSerializer,
-#     SocialLoginResponseSerializer,
+    SocialLoginResponseSerializer,
 #     FollowResponseSerializer,
 #     UsernameUpdateSerializer, UserProfileSerializer, UserProfileImageFileInfoSerializer,
 #     UserProfileUpdateSerializer
-# )
+)
 from snapsapi.utils.aws import create_presigned_post, build_user_profile_image_object_name
 
 User = get_user_model()
@@ -42,7 +42,7 @@ User = get_user_model()
 class SocialLoginView(_SocialLoginView):
     callback_url = settings.GOOGLE_REDIRECT_URL
     client_class = OAuth2Client
-    serializer_class = None
+    # serializer_class = s.SocialLoginResponseSerializer # Todo : must modified UserSerializer
     queryset = User.objects.filter(is_active=True, is_deleted=False)
 
     PROVIDER_ADAPTERS = {
@@ -59,6 +59,7 @@ class SocialLoginView(_SocialLoginView):
     def get_serializer_class(self):
         if self.request.method == 'POST':
             return s.SocialLoginWriteSerializer
+        # return s.UserLoginSerializer
         return super().get_serializer_class()
 
     @extend_schema(
@@ -96,6 +97,7 @@ class SocialLoginView(_SocialLoginView):
         provider = request.data.get('provider')
         adapter_class = self.PROVIDER_ADAPTERS.get(provider)
         callback_url = self.CALLBACK_URLS.get(provider)
+        print(self.serializer_class)
         if not adapter_class:
             return Response(
                 {"provider": [

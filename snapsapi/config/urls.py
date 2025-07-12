@@ -22,12 +22,18 @@ from drf_spectacular.views import (
     SpectacularSwaggerView,
     SpectacularRedocView,
 )
-from snapsapi.apps.core.views import home
+from snapsapi.apps.core.views import (
+    home,
+    CollectionListCreateView,
+    CollectionDetailView,
+    CollectionMemberView,
+    CollectionAddPostView
+)
 
 urlpatterns = [
     path('', home, name='home'),
     path('admin/', admin.site.urls),
-    path('core/', include('snapsapi.apps.core.urls')),
+    path('core/', include(('snapsapi.apps.core.urls', 'core'))),
     path('posts/', include('snapsapi.apps.posts.urls')),
     path('comments/', include('snapsapi.apps.comments.urls')),
     path('dj-rest-auth/', include('dj_rest_auth.urls')),
@@ -36,4 +42,12 @@ urlpatterns = [
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('api/docs/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
+
+    # Collection URLs
+    path('collections/', CollectionListCreateView.as_view(), name='collections-list-create'),
+    path('collections/<uuid:uid>/', CollectionDetailView.as_view(), name='collections-detail'),
+    path('collections/<uuid:uid>/members/<str:user_uid>/', CollectionMemberView.as_view(),
+         name='collections-members-detail'),
+    path('collections/<uuid:uid>/posts/<uuid:post_uid>/', CollectionAddPostView.as_view(),
+         name='collections-posts-detail'),
 ]

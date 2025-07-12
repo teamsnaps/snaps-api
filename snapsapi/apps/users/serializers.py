@@ -39,6 +39,55 @@ class UserSerializer(serializers.Serializer):
             return False
         return Follow.objects.filter(follower=request_user, following=obj).exists()
 
+# class UserLoginSerializer(UserSerializer):
+#     email = serializers.EmailField(read_only=True)
+#     first_name = serializers.CharField(read_only=True)
+#     last_name = serializers.CharField(read_only=True)
+#     is_username_changed = serializers.BooleanField(read_only=True, default=False)
+#
+#     def to_representation(self, instance):
+#         # 먼저 부모 클래스의 to_representation을 호출
+#         representation = super().to_representation(instance)
+#
+#         # 추가 필드 값 설정
+#         representation['email'] = instance.email
+#         representation['first_name'] = instance.first_name
+#         representation['last_name'] = instance.last_name
+#
+#         # is_username_changed 필드가 존재하는 경우 추가
+#         if hasattr(instance, 'is_username_changed'):
+#             representation['is_username_changed'] = instance.is_username_changed
+#
+#         return representation
+class UserLoginSerializer(serializers.Serializer):
+    """
+    Comprehensive user information for login responses.
+    """
+    # UserSerializer 필드
+    # uid = serializers.CharField(read_only=True)
+    # username = serializers.CharField(read_only=True)
+    # image_url = serializers.CharField(source='profile.image_url', read_only=True, default='/media/users/default/user.png')
+    # bio = serializers.CharField(source='profile.bio', read_only=True)
+    # is_me = serializers.SerializerMethodField()
+    # is_following = serializers.SerializerMethodField()
+    # email = serializers.EmailField(read_only=True)
+    # first_name = serializers.CharField(read_only=True)
+    # last_name = serializers.CharField(read_only=True)
+    is_username_changed = serializers.BooleanField(read_only=True, default=False)
+
+    def get_is_me(self, obj):
+        request_user = self.context.get('request').user
+        return request_user.is_authenticated and request_user == obj
+
+    def get_is_following(self, obj):
+        request_user = self.context.get('request').user
+        if not request_user or not request_user.is_authenticated:
+            return False
+        if request_user == obj:
+            return False
+        return Follow.objects.filter(follower=request_user, following=obj).exists()
+
+
 
 class UserProfileSerializer(serializers.Serializer):
     """
@@ -83,18 +132,25 @@ class SocialLoginReadSerializer(SocialLoginSerializer):
     provider = serializers.ChoiceField(choices=['google', 'kakao', 'naver'])
 
 
-class UserLoginSerializer(serializers.Serializer):
-    uid = serializers.CharField()
-    username = serializers.CharField()
-    email = serializers.EmailField()
-    first_name = serializers.CharField()
-    last_name = serializers.CharField()
-
+# class UserLoginSerializer(serializers.Serializer):
+#     uid = serializers.CharField()
+#     username = serializers.CharField()
+#     email = serializers.EmailField()
+#     first_name = serializers.CharField()
+#     last_name = serializers.CharField()
+#
+#
+# class SocialLoginResponseSerializer(serializers.Serializer):
+#     access = serializers.CharField()
+#     refresh = serializers.CharField()
+#     user = UserLoginSerializer()
 
 class SocialLoginResponseSerializer(serializers.Serializer):
     access = serializers.CharField()
     refresh = serializers.CharField()
     user = UserLoginSerializer()
+    access_expiration = serializers.DateTimeField()
+    refresh_expiration = serializers.DateTimeField()
 
 
 class FollowResponseSerializer(serializers.Serializer):
