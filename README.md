@@ -36,6 +36,7 @@ API는 다음과 같은 주요 리소스를 제공합니다:
 - `/api/collections/` - 게시물 컬렉션 관리
 
 ## 📦 앱 구조
+```
 snapsapi/ 
 ├── apps/ # Django 앱 모듈 
 │ ├── users/ # 사용자 관리 
@@ -54,7 +55,7 @@ snapsapi/
 ├── base.txt # 공통 패키지 
 ├── dev.txt # 개발용 패키지 
 └── prod.txt # 프로덕션용 패키지
-
+```
 
 ## 🛠️ 개발 환경 설정
 
