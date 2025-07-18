@@ -286,3 +286,88 @@ class CollectionAddPostView(GenericAPIView):
         # Remove the post from the collection
         collection.posts.remove(post)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@method_decorator(transaction.atomic, name='dispatch')
+class DefaultCollectionAddPostView(GenericAPIView):
+    """
+    Add or remove posts from the user's default collection.
+    - POST /api/collections/posts/{post_uid}/ - Add a post to the default collection
+    - DELETE /api/collections/posts/{post_uid}/ - Remove a post from the default collection
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get_default_collection(self, user):
+        """
+        Get the user's default collection.
+        """
+        try:
+            return Collection.objects.filter(owner=user, name='default').first()
+        except Collection.DoesNotExist:
+            return None
+
+    def post(self, request, *args, **kwargs):
+        """
+        Add a post to the user's default collection.
+        """
+        # Get the user's default collection
+        collection = self.get_default_collection(request.user)
+        if not collection:
+            return Response(
+                {"detail": "Default collection not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        post_uid = kwargs.get('post_uid')
+
+        # Get the post by uid
+        try:
+            from snapsapi.apps.posts.models import Post
+            post = Post.objects.get(uid=post_uid)
+        except Post.DoesNotExist:
+            return Response(
+                {"detail": "Post with this UID does not exist."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Check if the post is already in the collection
+        if collection.posts.filter(pk=post.pk).exists():
+            return Response(
+                {"detail": "Post is already in this collection."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Add the post to the collection
+        collection.posts.add(post)
+        return Response(
+            {"detail": "Post added to default collection."},
+            status=status.HTTP_200_OK
+        )
+
+    def delete(self, request, *args, **kwargs):
+        """
+        Remove a post from the user's default collection.
+        """
+        # Get the user's default collection
+        collection = self.get_default_collection(request.user)
+        if not collection:
+            return Response(
+                {"detail": "Default collection not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        post_uid = kwargs.get('post_uid')
+
+        # Check if the post is in the collection
+        try:
+            from snapsapi.apps.posts.models import Post
+            post = collection.posts.get(uid=post_uid)
+        except Post.DoesNotExist:
+            return Response(
+                {"detail": "Post is not in this collection."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Remove the post from the collection
+        collection.posts.remove(post)
+        return Response(status=status.HTTP_204_NO_CONTENT)

@@ -27,7 +27,8 @@ from snapsapi.apps.core.views import (
     CollectionListCreateView,
     CollectionDetailView,
     CollectionMemberView,
-    CollectionAddPostView
+    CollectionAddPostView,
+    DefaultCollectionAddPostView
 )
 
 urlpatterns = [
@@ -50,4 +51,6 @@ urlpatterns = [
          name='collections-members-detail'),
     path('collections/<uuid:uid>/posts/<uuid:post_uid>/', CollectionAddPostView.as_view(),
          name='collections-posts-detail'),
+    path('collections/posts/<uuid:post_uid>/', DefaultCollectionAddPostView.as_view(),
+         name='default-collection-posts-detail'),
 ]

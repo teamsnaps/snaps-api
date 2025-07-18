@@ -41,7 +41,8 @@ class User(AbstractUser, mx.UserMixin):
             MinLengthValidator(5),  # Validator for minimum length of 5
             RegexValidator(
                 regex=r'^[A-Za-z0-9._]+$',
-                message='Username can only contain uppercase letters, lowercase letters, numbers, periods, and underscores.',
+                # message='Username can only contain uppercase letters, lowercase letters, numbers, periods, and underscores.',
+                message="사용자명은 영문소문자, 숫자, 마침표(.), 밑줄(_)만 사용 가능합니다.",
                 code='invalid_username'
             )
         ]

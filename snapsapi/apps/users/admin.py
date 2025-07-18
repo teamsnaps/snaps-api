@@ -7,6 +7,36 @@ from django.template.response import TemplateResponse
 from django.utils.html import format_html
 
 from snapsapi.apps.users.models import User, Profile
+from snapsapi.apps.core.models import Collection
+
+
+@admin.action(description="Create default collection for selected users")
+def create_default_collection(modeladmin, request, queryset):
+    """
+    Action to create a default collection for selected users who don't have one.
+    """
+    created_count = 0
+    skipped_count = 0
+
+    for user in queryset:
+        # Check if user already has a default collection
+        if Collection.objects.filter(owner=user, name='default').exists():
+            skipped_count += 1
+            continue
+
+        # Create default collection for user
+        Collection.objects.create_collection(
+            owner=user,
+            name='default',
+            description=f"Default collection for {user.username}",
+            is_public=True
+        )
+        created_count += 1
+
+    if created_count:
+        messages.success(request, f"Successfully created default collection for {created_count} users.")
+    if skipped_count:
+        messages.info(request, f"Skipped {skipped_count} users who already have a default collection.")
 
 
 @admin.action(description="Reconcile posts count with actual posts")
@@ -37,7 +67,7 @@ class UserAdmin(admin.ModelAdmin):
     list_display = ('username', 'email', 'posts_count', 'actual_posts_count', 'posts_count_diff', 'is_staff', 'is_active')
     search_fields = ('username', 'email')
     list_filter = ('is_staff', 'is_active', 'is_deleted')
-    actions = [reconcile_posts_count]
+    actions = [reconcile_posts_count, create_default_collection]
     change_list_template = 'admin/users/user/change_list.html'
 
     def get_queryset(self, request):
@@ -75,6 +105,7 @@ class UserAdmin(admin.ModelAdmin):
         urls = super().get_urls()
         custom_urls = [
             path('reconcile-all-posts-count/', self.admin_site.admin_view(self.reconcile_all_posts_count), name='reconcile_all_posts_count'),
+            path('create-all-default-collections/', self.admin_site.admin_view(self.create_all_default_collections), name='create_all_default_collections'),
         ]
         return custom_urls + urls
 
@@ -107,6 +138,45 @@ class UserAdmin(admin.ModelAdmin):
             'opts': self.model._meta,
         }
         return TemplateResponse(request, 'admin/users/user/reconcile_all_confirm.html', context)
+
+    def create_all_default_collections(self, request):
+        """
+        View to create default collections for all users who don't have one.
+        """
+        if request.method == 'POST':
+            # Get all users
+            users = User.objects.all()
+            created_count = 0
+            skipped_count = 0
+
+            for user in users:
+                # Check if user already has a default collection
+                if Collection.objects.filter(owner=user, name='default').exists():
+                    skipped_count += 1
+                    continue
+
+                # Create default collection for user
+                Collection.objects.create_collection(
+                    owner=user,
+                    name='default',
+                    description=f"Default collection for {user.username}",
+                    is_public=True
+                )
+                created_count += 1
+
+            if created_count:
+                messages.success(request, f"Successfully created default collection for {created_count} users.")
+            if skipped_count:
+                messages.info(request, f"Skipped {skipped_count} users who already have a default collection.")
+
+            return redirect('admin:users_user_changelist')
+
+        # If not POST, show confirmation page
+        context = {
+            'title': 'Create Default Collections for All Users',
+            'opts': self.model._meta,
+        }
+        return TemplateResponse(request, 'admin/users/user/create_default_collections_confirm.html', context)
 
 
 admin.site.register(User, UserAdmin)
