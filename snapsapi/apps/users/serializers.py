@@ -180,16 +180,23 @@ class UsernameUpdateSerializer(serializers.ModelSerializer):
     def validate_username(self, value):
         """
         Performs custom validation for the username.
-        - Length validation (5-30 characters).
+        - Length validation (5-20 characters).
+        - Character validation (only uppercase letters, lowercase letters, numbers, '.', '_').
         - Uniqueness is handled by the model field's `unique=True`.
         - Prevents updating to the same username as the current one.
         """
-        if not (5 <= len(value) <= 30):
-            raise serializers.ValidationError("Username must be between 5 and 30 characters long.")
+        if not (5 <= len(value) <= 20):
+            raise serializers.ValidationError("Username must be between 5 and 20 characters long.")
+
+        import re
+        if not re.match(r'^[a-z0-9._]+$', value):
+            # raise serializers.ValidationError("Username can only contain uppercase letters, lowercase letters, numbers, periods, and underscores.")
+            raise serializers.ValidationError("사용자명은 영문소문자, 숫자, 마침표(.), 밑줄(_)만 사용 가능합니다.")
 
         if self.instance and self.instance.username == value:
             raise serializers.ValidationError(
-                "This is the same as your current username. Please choose a different one.")
+                # "This is the same as your current username. Please choose a different one.")
+                "현재 사용 중인 사용자명과 동일합니다. 다른 사용자명을 선택해 주세요.")
 
         return value
 
@@ -203,7 +210,8 @@ class UsernameUpdateSerializer(serializers.ModelSerializer):
             # Calculate when the user can change it next
             next_change_date = (user.username_last_changed_at + timedelta(days=30)).strftime("%Y-%m-%d")
             raise serializers.ValidationError(
-                f"You can only change your username once every 30 days. You can change it again after {next_change_date}."
+                # f"You can only change your username once every 30 days. You can change it again after {next_change_date}."
+                f"사용자 이름은 30일에 한 번만 변경 가능합니다. {next_change_date} 이후에 다시 수정해주세요."
             )
         return data
 

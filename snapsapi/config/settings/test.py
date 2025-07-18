@@ -1,3 +1,4 @@
+import django.test.runner
 
 from .base import *
 
@@ -14,3 +15,4 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+# TEST_RUNNER = django.test.runner.DiscoverRunner

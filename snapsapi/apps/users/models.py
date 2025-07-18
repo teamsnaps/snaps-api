@@ -2,7 +2,7 @@ from datetime import timedelta, datetime, UTC
 
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from django.core.validators import MinLengthValidator
+from django.core.validators import MinLengthValidator, RegexValidator
 
 from bson.objectid import ObjectId
 import shortuuid
@@ -34,10 +34,17 @@ class User(AbstractUser, mx.UserMixin):
     is_deleted = models.BooleanField(default=False, null=False)
     deleted_at = models.DateTimeField(null=True, blank=True)
     username = models.CharField(
-        max_length=30,  # Set max length to 30 characters
+        max_length=20,  # Set max length to 20 characters
         unique=True,
         default=generate_username_with_short_uuid,
-        validators=[MinLengthValidator(5)]  # Add a validator for minimum length of 5
+        validators=[
+            MinLengthValidator(5),  # Validator for minimum length of 5
+            RegexValidator(
+                regex=r'^[A-Za-z0-9._]+$',
+                message='Username can only contain uppercase letters, lowercase letters, numbers, periods, and underscores.',
+                code='invalid_username'
+            )
+        ]
     )
     is_username_changed = models.BooleanField(
         default=False,
