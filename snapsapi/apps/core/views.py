@@ -336,13 +336,19 @@ class DefaultCollectionAddPostView(GenericAPIView):
             # Remove the post from the collection
             collection.posts.remove(post)
             return Response(
-                {"detail": "Post removed from default collection."},
+                {
+                    "detail": "Post removed from default collection.",
+                    "is_collected": False
+                },
                 status=status.HTTP_200_OK
             )
         else:
             # Add the post to the collection
             collection.posts.add(post)
             return Response(
-                {"detail": "Post added to default collection."},
+                {
+                    "detail": "Post added to default collection.",
+                    "is_collected": True
+                },
                 status=status.HTTP_200_OK
             )

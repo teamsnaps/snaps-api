@@ -28,7 +28,7 @@ class PostImageURLInputSerializer(serializers.Serializer):
 class PostReadSerializer(serializers.ModelSerializer):
     """
     A Serializer used for retrieving posts.
-    It serializes all fields, including the user's 'like' status.
+    It serializes all fields, including the user's 'like' status and 'collection' status.
     """
     metadata = serializers.SerializerMethodField(read_only=True)
     user = UserSerializer(read_only=True)
@@ -39,6 +39,7 @@ class PostReadSerializer(serializers.ModelSerializer):
         slug_field='name'
     )
     is_liked = serializers.SerializerMethodField()
+    is_collected = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
@@ -52,6 +53,7 @@ class PostReadSerializer(serializers.ModelSerializer):
             'likes_count',
             'comments_count',
             'is_liked',
+            'is_collected',
             'is_public',
             'created_at',
             'updated_at',
@@ -67,6 +69,17 @@ class PostReadSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         if request and request.user.is_authenticated:
             return PostLike.objects.filter(post=post, user=request.user).exists()
+        return False
+
+    def get_is_collected(self, post):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            from snapsapi.apps.core.models import Collection
+            # Get the user's default collection
+            default_collection = Collection.objects.filter(owner=request.user, name='default').first()
+            if default_collection:
+                # Check if the post is in the default collection
+                return default_collection.posts.filter(pk=post.pk).exists()
         return False
 
 
@@ -254,5 +267,3 @@ class FileInfoSerializer(serializers.Serializer):
 
 class PresignedURLRequestSerializer(serializers.Serializer):
     files = FileInfoSerializer(many=True)
-
-
