@@ -4,6 +4,7 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticate
 from rest_framework.response import Response
 from rest_framework import status
 
+from snapsapi.apps.notifications.services import FCMService
 from snapsapi.apps.comments.permissions import IsCommentOwner
 from snapsapi.apps.comments.models import Comment
 from snapsapi.apps.comments.serializers import (
@@ -14,6 +15,7 @@ from snapsapi.apps.comments.serializers import (
 )
 
 from snapsapi.apps.posts.models import Post
+
 
 
 class CommentListCreateView(ListCreateAPIView):
@@ -72,6 +74,42 @@ class CommentListCreateView(ListCreateAPIView):
 
         # If the post is not deleted, perform the default create action
         return super().create(request, *args, **kwargs)
+
+
+    def send_notification(self, instance):
+        # 알림 발송 등의 추가 작업
+        # 예: FCM 알림 발송
+        try:
+            post_owner = instance.post.user
+            # 댓글 작성자가 게시물 주인이 아닌 경우에만 알림 발송
+            if self.request.user != post_owner:
+                fcm_service = FCMService()
+                fcm_service.send_to_user(
+                    user_id=post_owner.id,
+                    title="새 댓글 알림",
+                    body=f"{self.request.user.username}님이 회원님의 게시물에 댓글을 남겼습니다.",
+                    data={
+                        "url": f"/posts/{instance.post.uid}?comment={instance.id}",
+                        "type": "new_comment",
+                        "post_id": str(instance.post.uid),
+                        "comment_id": str(instance.id)
+                    }
+                )
+        except Exception as e:
+            # 알림 발송 실패가 API 응답에 영향을 주지 않도록 예외 처리
+            print(f"알림 발송 실패: {e}")
+
+    def perform_create(self, serializer):
+        # 객체 생성
+        instance = serializer.save()
+
+        # 객체 생성 후 추가 작업 수행
+        self.send_notification(instance)
+
+        return instance
+
+
+
 
 
 class CommentDetailView(RetrieveUpdateDestroyAPIView):

@@ -174,7 +174,8 @@ SIMPLE_JWT = {
     # "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     "ACCESS_TOKEN_LIFETIME": timedelta(days=365 * 100),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=365 * 100),
-    "ROTATE_REFRESH_TOKENS": True,  # When set to True, a new access token and refresh token will be returned when a refresh token is sent.
+    "ROTATE_REFRESH_TOKENS": True,
+    # When set to True, a new access token and refresh token will be returned when a refresh token is sent.
     "BLACKLIST_AFTER_ROTATION": True,  # When set to True, the existing refresh token will be blacklisted.
     "UPDATE_LAST_LOGIN": True,
     "ALGORITHM": "HS256",
@@ -315,3 +316,27 @@ AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
 AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_S3_STATIC_BUCKET_NAME', 'snapsapi-app-storage')  # Todo must edit env variable
 AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME')
 # AWS_S3_CUSTOM_DOMAIN    = 'storage.snaps.show'       # CloudFront 커스텀 도메인
+
+
+# Firebase configure
+FIREBASE_CREDENTIALS = {
+    "type": os.environ.get("FIREBASE_TYPE"),
+    "project_id": os.environ.get("FIREBASE_PROJECT_ID"),
+    "private_key_id": os.environ.get("FIREBASE_PRIVATE_KEY_ID"),
+    "private_key": os.environ.get("FIREBASE_PRIVATE_KEY").replace('\\n', '\n') if os.environ.get(
+        "FIREBASE_PRIVATE_KEY") else None,
+    "client_email": os.environ.get("FIREBASE_CLIENT_EMAIL"),
+    "client_id": os.environ.get("FIREBASE_CLIENT_ID"),
+    "auth_uri": os.environ.get("FIREBASE_AUTH_URI"),
+    "token_uri": os.environ.get("FIREBASE_TOKEN_URI"),
+    "auth_provider_x509_cert_url": os.environ.get("FIREBASE_AUTH_PROVIDER_X509_CERT_URL"),
+    "client_x509_cert_url": os.environ.get("FIREBASE_CLIENT_X509_CERT_URL"),
+    "universe_domain": os.environ.get("FIREBASE_UNIVERSE_DOMAIN")
+}
+
+FIREBASE_CONFIG_VALID = all([
+    FIREBASE_CREDENTIALS["type"],
+    FIREBASE_CREDENTIALS["project_id"],
+    FIREBASE_CREDENTIALS["private_key"],
+    FIREBASE_CREDENTIALS["client_email"]
+])
