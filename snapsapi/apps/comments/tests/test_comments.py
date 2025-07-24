@@ -1,6 +1,7 @@
 import pytest
 from django.urls import reverse
 from rest_framework import status
+from unittest.mock import patch
 from .payloads import (
     CREATE_COMMENT_PAYLOAD,
     CREATE_REPLY_PAYLOAD,
@@ -70,6 +71,45 @@ class TestCommentListCreateView:
         response = api_client.post(url, CREATE_COMMENT_PAYLOAD, format='json')
         
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
+    
+    @patch('snapsapi.apps.notifications.services.FCMService.send_notifications_to_user')
+    def test_create_comment_should_send_notification_to_post_owner(self, mock_send_notifications, jwt_client_user2, post1, user1):
+        """POST /api/posts/{uid}/comments/ - Test that a notification is sent to the post owner when a comment is created"""
+        url = reverse('posts:comments-list-create', kwargs={'uid': post1.uid})
+        response = jwt_client_user2.post(url, CREATE_COMMENT_PAYLOAD, format='json')
+        
+        # Verify the comment was created successfully
+        assert response.status_code == status.HTTP_201_CREATED
+        
+        # Verify that send_notifications_to_user was called with the correct parameters
+        mock_send_notifications.assert_called_once()
+        
+        # Check the first argument (user_id)
+        args, kwargs = mock_send_notifications.call_args
+        assert kwargs['user_id'] == user1.id
+        
+        # Check that title and body are present
+        assert 'title' in kwargs
+        assert 'body' in kwargs
+        
+        # Check that data contains the required fields
+        assert 'data' in kwargs
+        assert 'post_id' in kwargs['data']
+        assert 'comment_id' in kwargs['data']
+        assert 'type' in kwargs['data']
+        assert kwargs['data']['type'] == 'new_comment'
+        
+    @patch('snapsapi.apps.notifications.services.FCMService.send_notifications_to_user')
+    def test_create_comment_on_own_post_should_not_send_notification(self, mock_send_notifications, jwt_client, post1):
+        """POST /api/posts/{uid}/comments/ - Test that no notification is sent when a user comments on their own post"""
+        url = reverse('posts:comments-list-create', kwargs={'uid': post1.uid})
+        response = jwt_client.post(url, CREATE_COMMENT_PAYLOAD, format='json')
+        
+        # Verify the comment was created successfully
+        assert response.status_code == status.HTTP_201_CREATED
+        
+        # Verify that send_notifications_to_user was not called
+        mock_send_notifications.assert_not_called()
 
 
 @pytest.mark.django_db
