@@ -5,8 +5,6 @@ from django.conf import settings
 from snapsapi.apps.notifications.models import FCMDevice
 
 
-# Todo: register_device api 추가해야함
-
 class FCMService:
     _instance = None
 
@@ -26,33 +24,46 @@ class FCMService:
                 print(f"Firebase 초기화 실패: {e}")
         return cls._instance
 
-    def send_to_user(self, user_id, title, body, data=None):
-        """특정 사용자의 모든 디바이스에 알림 전송"""
+    def send_notifications_to_user(self, user_id, title, body, data=None):
+        """특정 사용자의 모든 활성 디바이스에 알림을 한번에 전송 (효율적인 방식)"""
         devices = FCMDevice.objects.filter(user_id=user_id, active=True)
+        tokens = [device.registration_id for device in devices]
 
-        if not devices.exists():
-            return {'success': False, 'message': 'No active devices found for user'}
+        if not tokens:
+            return None  # 보낼 기기가 없으면 종료
 
-        results = []
-        for device in devices:
-            try:
-                result = self.send_notification(
-                    token=device.registration_id,
-                    title=title,
-                    body=body,
-                    data=data
+        message = messaging.MulticastMessage(
+            notification=messaging.Notification(
+                title=title,
+                body=body,
+            ),
+            data=data or {},
+            tokens=tokens,
+            webpush=messaging.WebpushConfig(
+                notification=messaging.WebpushNotification(
+                    icon='/assets/icons/icon-192x192.png',
+                ),
+                fcm_options=messaging.WebpushFCMOptions(
+                    link=data.get('url', '/') if data else '/'
                 )
-                results.append({'device_id': device.id, 'success': True, 'message_id': result})
-            except Exception as e:
-                # 토큰이 유효하지 않은 경우 디바이스 비활성화
-                if 'invalid-registration-token' in str(e) or 'registration-token-not-registered' in str(e):
-                    device.active = False
-                    device.save()
+            )
+        )
 
-                results.append({'device_id': device.id, 'success': False, 'error': str(e)})
+        # send_multicast를 사용하여 한번에 모든 토큰에 발송
+        batch_response = messaging.send_multicast(message)
 
-        return {'success': True, 'results': results}
+        # 실패한 토큰이 있는 경우, 해당 디바이스를 비활성화
+        if batch_response.failure_count > 0:
+            failed_tokens = []
+            for idx, response in enumerate(batch_response.responses):
+                if not response.success:
+                    # 응답 순서는 토큰 리스트 순서와 일치합니다.
+                    failed_tokens.append(tokens[idx])
 
+            if failed_tokens:
+                FCMDevice.objects.filter(registration_id__in=failed_tokens).update(active=False)
+
+        return batch_response
 
     def send_notification(self, token, title, body, data=None):
         """단일 기기에 알림 전송"""

@@ -29,6 +29,7 @@ pytest-django = "^4.11.1"
 drf-rw-serializers = "^1.4.0"
 shortuuid = "^1.0.13"
 firebase-admin = "6.9.0"
+mock = "^5.2.0"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -36,6 +37,7 @@ coverage = "^7.9.2"
 pytest = "^8.4.1"
 pytest-django = "^4.11.1"
 pytest-cov = "^6.2.1"
+pytest-mock = "^3.14.1"
 
 
 [build-system]
@@ -44,6 +46,7 @@ build-backend = "poetry.core.masonry.api"
 
 
 [tool.pytest.ini_options]
-DJANGO_SETTINGS_MODULE = "snapsapi.config.settings.local"
+DJANGO_SETTINGS_MODULE = "snapsapi.config.settings.test"
 python_files = ["test_*.py", "*_test.py"]
+django_find_project = true
 testpaths = ["snapsapi"]

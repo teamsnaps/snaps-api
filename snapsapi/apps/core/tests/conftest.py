@@ -4,7 +4,8 @@ from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from snapsapi.apps.core.models import Follow
+from snapsapi.apps.core.models import Follow, Collection, CollectionMember
+from snapsapi.apps.posts.models import Post, Tag, PostImage
 
 
 @pytest.fixture
@@ -58,3 +59,92 @@ def follow_relation(user1, user2):
         following=user2
     )
     return follow
+
+
+@pytest.fixture
+def tag1():
+    """A test tag"""
+    return Tag.objects.create(name="testtag", is_featured=True)
+
+
+@pytest.fixture
+def post1(user1, tag1):
+    """A test post by user1"""
+    post = Post.objects.create(
+        user=user1,
+        caption="test caption",
+        is_deleted=False,
+        is_active=True,
+    )
+    post.tags.add(tag1)
+    PostImage.objects.create(
+        post=post,
+        url="https://example.com/image.png",
+        order=0
+    )
+    return post
+
+
+@pytest.fixture
+def collection1(user1):
+    """A public collection owned by user1"""
+    collection = Collection.objects.create(
+        name="Test Collection",
+        description="A test collection",
+        owner=user1,
+        is_public=True
+    )
+    return collection
+
+
+@pytest.fixture
+def private_collection(user1):
+    """A private collection owned by user1"""
+    collection = Collection.objects.create(
+        name="Private Collection",
+        description="A private test collection",
+        owner=user1,
+        is_public=False
+    )
+    return collection
+
+
+@pytest.fixture
+def collection_user2(user2):
+    """A collection owned by user2"""
+    collection = Collection.objects.create(
+        name="User2's Collection",
+        description="A collection owned by user2",
+        owner=user2,
+        is_public=True
+    )
+    return collection
+
+
+@pytest.fixture
+def default_collection(user1):
+    """User1's default collection"""
+    collection = Collection.objects.create(
+        name="default",
+        description="Default collection",
+        owner=user1,
+        is_public=True
+    )
+    return collection
+
+
+@pytest.fixture
+def collection_member(collection_user2, user1):
+    """User1 is a member of user2's collection"""
+    member = CollectionMember.objects.create(
+        collection=collection_user2,
+        user=user1
+    )
+    return member
+
+
+@pytest.fixture
+def collection_with_post(collection1, post1):
+    """A collection with a post"""
+    collection1.posts.add(post1)
+    return collection1

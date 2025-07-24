@@ -8,5 +8,5 @@ app_name = 'notifications'
 urlpatterns = []
 
 urlpatterns += [
-    path('devices/', register_device, name='register-device'),
+    path('devices/', register_device, name='fcm-device-register'),
 ]

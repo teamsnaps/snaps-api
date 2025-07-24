@@ -73,7 +73,11 @@ class CommentListCreateView(ListCreateAPIView):
             )
 
         # If the post is not deleted, perform the default create action
-        return super().create(request, *args, **kwargs)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 
     def send_notification(self, instance):
@@ -84,7 +88,7 @@ class CommentListCreateView(ListCreateAPIView):
             # 댓글 작성자가 게시물 주인이 아닌 경우에만 알림 발송
             if self.request.user != post_owner:
                 fcm_service = FCMService()
-                fcm_service.send_to_user(
+                fcm_service.send_notifications_to_user(
                     user_id=post_owner.id,
                     title="새 댓글 알림",
                     body=f"{self.request.user.username}님이 회원님의 게시물에 댓글을 남겼습니다.",

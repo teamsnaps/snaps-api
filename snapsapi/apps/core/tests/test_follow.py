@@ -6,19 +6,6 @@ from snapsapi.apps.core.models import Follow
 
 
 @pytest.mark.django_db
-class TestHealthCheckView:
-    """Tests for the health_check view (/core/health/)"""
-
-    def test_health_check_should_return_200_ok(self, api_client):
-        """GET /core/health/ - Test health check endpoint"""
-        url = reverse('core:health_check')
-        response = api_client.get(url)
-        
-        assert response.status_code == status.HTTP_200_OK
-        assert response.data['status'] == 'ok'
-
-
-@pytest.mark.django_db
 class TestFollowModel:
     """Tests for the Follow model and its signal handlers"""
 

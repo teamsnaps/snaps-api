@@ -3,6 +3,7 @@ import pytest
 from django.contrib.auth import get_user_model
 from rest_framework.authtoken import models as am
 from rest_framework.test import APIClient
+from rest_framework_simplejwt.tokens import RefreshToken
 from snapsapi.apps.posts import models as m
 
 
@@ -124,3 +125,29 @@ def post4(user1, tag1):
     )
     post.tags.add(tag1)
     return post
+
+
+@pytest.fixture
+def jwt_client(api_client, user1):
+    # 1) RefreshToken.for_user()로 토큰 생성
+    refresh = RefreshToken.for_user(user1)
+    access_token = str(refresh.access_token)
+    # 2) Authorization 헤더에 Bearer 토큰 설정
+    api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {access_token}')
+    return api_client
+
+
+@pytest.fixture
+def jwt_client_user1(api_client, user1):
+    # 1) RefreshToken.for_user()로 토큰 생성
+    refresh = RefreshToken.for_user(user1)
+    access_token = str(refresh.access_token)
+    # 2) Authorization 헤더에 Bearer 토큰 설정
+    api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {access_token}')
+    return api_client
+
+
+@pytest.fixture
+def invalid_jwt_client(api_client):
+    api_client.credentials(HTTP_AUTHORIZATION=f'Bearer 123456abcdef7890')
+    return api_client
