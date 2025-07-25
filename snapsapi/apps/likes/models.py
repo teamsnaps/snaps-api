@@ -10,6 +10,7 @@ from django.db.models.signals import post_save, post_delete
 
 from django.dispatch import receiver
 
+
 def generate_short_uuid():
     return shortuuid.uuid()
 
@@ -18,12 +19,9 @@ def generate_oid():
     return str(ObjectId())
 
 
-
-
-
 class PostLike(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='post_likes')
+    post = models.ForeignKey('posts.Post', on_delete=models.CASCADE, related_name='likes')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -32,7 +30,6 @@ class PostLike(models.Model):
 
     def __str__(self):
         return f'{self.user} likes {self.post}'
-
 
 
 class CommentLike(models.Model):
@@ -46,6 +43,7 @@ class CommentLike(models.Model):
 
     def __str__(self):
         return f'{self.user} likes {self.comment}'
+
 
 # --- Signals for automatic likes_count update ---
 

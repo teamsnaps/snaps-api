@@ -13,9 +13,6 @@ def generate_uuid():
     return uuid.uuid4()
 
 
-
-
-
 class Comment(models.Model, mx.CommentMixin):
     uid = models.UUIDField(primary_key=True, default=generate_uuid, editable=False)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
