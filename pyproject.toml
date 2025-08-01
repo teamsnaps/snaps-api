@@ -28,8 +28,8 @@ responses = "^0.25.7"
 pytest-django = "^4.11.1"
 drf-rw-serializers = "^1.4.0"
 shortuuid = "^1.0.13"
-firebase-admin = "6.9.0"
 mock = "^5.2.0"
+firebase-admin = "^7.1.0"
 
 
 [tool.poetry.group.dev.dependencies]
