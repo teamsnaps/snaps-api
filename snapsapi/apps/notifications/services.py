@@ -49,7 +49,8 @@ class FCMService:
                     icon='/assets/icons/icon-192x192.png',
                 ),
                 fcm_options=messaging.WebpushFCMOptions(
-                    link=full_url
+                    # link=full_url
+                    link='https://snaps-front.vercel.app/feed',
                 )
             )
         )
@@ -88,7 +89,8 @@ class FCMService:
                     icon='/assets/icons/icon-192x192.png',
                 ),
                 fcm_options=messaging.WebpushFCMOptions(
-                    link=full_url
+                    # link=full_url
+                    link='https://snaps-front.vercel.app/feed',
                 )
             )
         )
