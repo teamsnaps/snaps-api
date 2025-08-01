@@ -93,7 +93,8 @@ class CommentListCreateView(ListCreateAPIView):
                     title="새 댓글 알림",
                     body=f"{self.request.user.username}님이 회원님의 게시물에 댓글을 남겼습니다.",
                     data={
-                        "url": f"/posts/{instance.post.uid}?comment={instance.uid}",
+                        # "url": f"/posts/{instance.post.uid}?comment={instance.uid}",
+                        # "url": "/",
                         "type": "new_comment",
                         "post_id": str(instance.post.uid),
                         "comment_id": str(instance.uid)
