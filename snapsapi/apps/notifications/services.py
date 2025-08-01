@@ -35,7 +35,7 @@ class FCMService:
 
         relative_url = data.get('url', '/') if data else '/'
         # BASE_BACKEND_URL과 상대 경로를 조합하여 전체 URL 생성
-        full_url = urljoin(settings.BASE_BACKEND_URL, relative_url)
+        full_url = urljoin(settings.BASE_FRONTEND_URL, relative_url)
 
         message = messaging.MulticastMessage(
             notification=messaging.Notification(
@@ -74,7 +74,7 @@ class FCMService:
         """단일 기기에 알림 전송"""
         relative_url = data.get('url', '/') if data else '/'
         # BASE_BACKEND_URL과 상대 경로를 조합하여 전체 URL 생성
-        full_url = urljoin(settings.BASE_BACKEND_URL, relative_url)
+        full_url = urljoin(settings.BASE_FRONTEND_URL, relative_url)
 
         message = messaging.Message(
             notification=messaging.Notification(
