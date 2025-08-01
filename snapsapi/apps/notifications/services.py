@@ -1,7 +1,8 @@
-# notifications/services.py
 import firebase_admin
 from firebase_admin import credentials, messaging
 from django.conf import settings
+from urllib.parse import urljoin
+
 from snapsapi.apps.notifications.models import FCMDevice
 
 
@@ -32,6 +33,10 @@ class FCMService:
         if not tokens:
             return None  # 보낼 기기가 없으면 종료
 
+        relative_url = data.get('url', '/') if data else '/'
+        # BASE_BACKEND_URL과 상대 경로를 조합하여 전체 URL 생성
+        full_url = urljoin(settings.BASE_BACKEND_URL, relative_url)
+
         message = messaging.MulticastMessage(
             notification=messaging.Notification(
                 title=title,
@@ -44,7 +49,7 @@ class FCMService:
                     icon='/assets/icons/icon-192x192.png',
                 ),
                 fcm_options=messaging.WebpushFCMOptions(
-                    link=data.get('url', '/') if data else '/'
+                    link=full_url
                 )
             )
         )
@@ -67,6 +72,10 @@ class FCMService:
 
     def send_notification(self, token, title, body, data=None):
         """단일 기기에 알림 전송"""
+        relative_url = data.get('url', '/') if data else '/'
+        # BASE_BACKEND_URL과 상대 경로를 조합하여 전체 URL 생성
+        full_url = urljoin(settings.BASE_BACKEND_URL, relative_url)
+
         message = messaging.Message(
             notification=messaging.Notification(
                 title=title,
@@ -79,7 +88,7 @@ class FCMService:
                     icon='/assets/icons/icon-192x192.png',
                 ),
                 fcm_options=messaging.WebpushFCMOptions(
-                    link=data.get('url', '/') if data else '/'
+                    link=full_url
                 )
             )
         )
