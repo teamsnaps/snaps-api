@@ -27,7 +27,7 @@ SECRET_KEY = os.getenv('SNAPSAPI_SECRET_KEY',
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-BASE_BACKEND_URL = os.getenv('SNAPSAPI_BASE_BACKEND_URL')
+BASE_BACKEND_URL = os.environ.get('SNAPSAPI_BASE_BACKEND_URL')
 
 # Application definition
 DJANGO_APPS = [
