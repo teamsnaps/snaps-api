@@ -23,7 +23,7 @@ from snapsapi.apps.users.models import Profile
 from snapsapi.apps.core.models import Follow
 from snapsapi.apps.users.schemas import *
 from snapsapi.apps.users.permissions import IsProfileOwner, IsActiveUser
-
+from snapsapi.apps.notifications.services.fcm import FCMService
 from snapsapi.apps.users import serializers as s
 
 from snapsapi.apps.users.serializers import (
@@ -141,6 +141,32 @@ class FollowToggleView(APIView):
                 follower=follower,
                 following=following
             )
+        else:
+            # 팔로우가 새로 생성된 경우에만 알림 전송
+            try:
+                title = "새로운 팔로워"
+                display_name = getattr(getattr(follower, "profile", None), "display_name", None)
+                follower_name = display_name or getattr(follower, "username", "사용자")
+                body = f"{follower_name}님이 회원님을 팔로우하기 시작했습니다."
+
+                # 웹 푸시에서 클릭 시 이동할 경로 등 부가 데이터
+                data = {
+                    "type": "follow",
+                    "follower_uid": str(getattr(follower, "uid", "")),
+                    # 프론트엔드 라우팅에 맞게 수정하세요
+                    "url": f"/users/{getattr(follower, 'username', '')}"
+                }
+
+                FCMService().send_notifications_to_user(
+                    user_id=following.id,
+                    title=title,
+                    body=body,
+                    data=data
+                )
+            except Exception:
+                # 알림 실패가 API 응답을 막지 않도록 안전 처리
+                logger.exception("FCM 알림 전송 실패: follower=%s, following=%s", follower.id, following.id)
+
 
         # Refresh the object to get the latest count information from the database
         following.refresh_from_db()

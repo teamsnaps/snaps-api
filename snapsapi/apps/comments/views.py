@@ -4,7 +4,8 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticate
 from rest_framework.response import Response
 from rest_framework import status
 
-from snapsapi.apps.notifications.services import FCMService
+from snapsapi.apps.notifications.services.fcm import FCMService
+from snapsapi.apps.notifications.services.notification import NotificationService
 from snapsapi.apps.comments.permissions import IsCommentOwner
 from snapsapi.apps.comments.models import Comment
 from snapsapi.apps.comments.serializers import (
@@ -15,7 +16,6 @@ from snapsapi.apps.comments.serializers import (
 )
 
 from snapsapi.apps.posts.models import Post
-
 
 
 class CommentListCreateView(ListCreateAPIView):
@@ -79,7 +79,6 @@ class CommentListCreateView(ListCreateAPIView):
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
-
     def send_notification(self, instance):
         # 알림 발송 등의 추가 작업
         # 예: FCM 알림 발송
@@ -87,18 +86,12 @@ class CommentListCreateView(ListCreateAPIView):
             post_owner = instance.post.user
             # 댓글 작성자가 게시물 주인이 아닌 경우에만 알림 발송
             if self.request.user != post_owner:
-                fcm_service = FCMService()
-                fcm_service.send_notifications_to_user(
-                    user_id=post_owner.id,
-                    title="새 댓글 알림",
-                    body=f"{self.request.user.username}님이 회원님의 게시물에 댓글을 남겼습니다.",
-                    data={
-                        # "url": f"/posts/{instance.post.uid}?comment={instance.uid}",
-                        # "url": "/",
-                        "type": "new_comment",
-                        "post_id": str(instance.post.uid),
-                        "comment_id": str(instance.uid)
-                    }
+                notification_service = NotificationService()
+                notification_service.send_comment_created(
+                    to_user_id=post_owner.id,
+                    actor_username=self.request.user.username,
+                    post_id=str(instance.post.uid),
+                    comment_id=instance.uid
                 )
         except Exception as e:
             # 알림 발송 실패가 API 응답에 영향을 주지 않도록 예외 처리
@@ -112,9 +105,6 @@ class CommentListCreateView(ListCreateAPIView):
         self.send_notification(instance)
 
         return instance
-
-
-
 
 
 class CommentDetailView(RetrieveUpdateDestroyAPIView):

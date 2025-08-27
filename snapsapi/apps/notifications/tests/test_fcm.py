@@ -1,7 +1,7 @@
 # tests/apps/notifications/test_fcm.py
 import pytest
 from unittest.mock import patch, MagicMock
-from snapsapi.apps.notifications.services import FCMService
+from snapsapi.apps.notifications.services.fcm import FCMService
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -26,13 +26,13 @@ class TestFCMService:
         mock_send.assert_called_once()
         assert result == "message_id_123"
 
-    @patch('snapsapi.apps.notifications.services.messaging.send_multicast')
-    def test_send_multicast_notification(self, mock_send_multicast, user, fcm_device):
+    @patch('snapsapi.apps.notifications.services.fcm.messaging.send_each_for_multicast')
+    def test_send_each_for_multicast_notification(self, mock_send_each_for_multicast, user, fcm_device):
         # 모킹된 함수 설정
         mock_response = MagicMock()
         mock_response.success_count = 1
         mock_response.failure_count = 0
-        mock_send_multicast.return_value = mock_response
+        mock_send_each_for_multicast.return_value = mock_response
 
         # 서비스 호출
         fcm_service = FCMService()
@@ -43,7 +43,7 @@ class TestFCMService:
         )
 
         # 검증
-        mock_send_multicast.assert_called_once()
+        mock_send_each_for_multicast.assert_called_once()
         assert result.success_count == 1
         assert result.failure_count == 0
 

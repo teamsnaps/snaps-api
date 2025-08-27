@@ -72,7 +72,7 @@ class TestCommentListCreateView:
         
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
     
-    @patch('snapsapi.apps.notifications.services.FCMService.send_notifications_to_user')
+    @patch('snapsapi.apps.notifications.services.fcm.FCMService.send_notifications_to_user')
     def test_create_comment_should_send_notification_to_post_owner(self, mock_send_notifications, jwt_client_user2, post1, user1):
         """POST /api/posts/{uid}/comments/ - Test that a notification is sent to the post owner when a comment is created"""
         url = reverse('posts:comments-list-create', kwargs={'uid': post1.uid})
@@ -99,7 +99,7 @@ class TestCommentListCreateView:
         assert 'type' in kwargs['data']
         assert kwargs['data']['type'] == 'new_comment'
         
-    @patch('snapsapi.apps.notifications.services.FCMService.send_notifications_to_user')
+    @patch('snapsapi.apps.notifications.services.fcm.FCMService.send_notifications_to_user')
     def test_create_comment_on_own_post_should_not_send_notification(self, mock_send_notifications, jwt_client, post1):
         """POST /api/posts/{uid}/comments/ - Test that no notification is sent when a user comments on their own post"""
         url = reverse('posts:comments-list-create', kwargs={'uid': post1.uid})
