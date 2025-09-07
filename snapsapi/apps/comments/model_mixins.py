@@ -5,7 +5,6 @@ if TYPE_CHECKING:
     from snapsapi.apps.comments.models import Comment  # Avoiding Circular References
 
 
-
 class CommentMixin:
     def soft_delete(self: 'Comment') -> None:
         """
