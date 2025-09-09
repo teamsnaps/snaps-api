@@ -39,7 +39,6 @@ class FollowManager(models.Manager):
         deleted_count, _ = self.filter(follower=follower, following=following).delete()
         return deleted_count
 
-
 class CollectionManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset().filter(is_deleted=False, is_active=True)
