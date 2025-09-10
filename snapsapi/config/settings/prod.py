@@ -11,7 +11,8 @@ INSTALLED_APPS += ['storages']
 CORS_ALLOWED_ORIGINS = [
     # f"{str(os.getenv('SNAPSAPI_BASE_FRONTEND_URL'))}",
     "https://snaps-front.vercel.app",
-    "http://localhost:3000"
+    "http://localhost:3000",
+    "https://snaps-deploy-bxvw.vercel.app"
 ]
 CORS_ALLOW_CREDENTIALS = True
 
