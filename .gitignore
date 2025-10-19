@@ -23,7 +23,12 @@ snapsapi/static/
 
 # IDE
 .run/
+# IntelliJ IDEA
 .idea/
+!.idea/codeStyles/
+!.idea/inspectionProfiles/
+!.idea/runConfigurations/
+!.idea/misc.xml
 .vscode/
 *.swp
 
