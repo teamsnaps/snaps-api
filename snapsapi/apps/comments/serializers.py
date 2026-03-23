@@ -33,8 +33,9 @@ class CommentReadSerializer(serializers.ModelSerializer):
         """
         Recursively serializes the replies (nested comments).
         """
-        if instance.replies.exists():
-            return CommentReadSerializer(instance.replies.all(), many=True, context=self.context).data
+        replies = instance.replies.all()  # Uses prefetch_related cache
+        if replies:
+            return CommentReadSerializer(replies, many=True, context=self.context).data
         return []
 
 

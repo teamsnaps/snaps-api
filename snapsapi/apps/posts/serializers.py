@@ -66,19 +66,24 @@ class PostReadSerializer(serializers.ModelSerializer):
         return [{'url': image.url} for image in obj.images.all()] if hasattr(obj, 'images') else []
 
     def get_is_liked(self, post):
+        # Use annotation from queryset (injected by view) — no extra DB query
+        if hasattr(post, 'is_liked'):
+            return post.is_liked
         request = self.context.get('request')
         if request and request.user.is_authenticated:
             return PostLike.objects.filter(post=post, user=request.user).exists()
         return False
 
     def get_is_collected(self, post):
+        # Use pre-fetched set from context (injected by view) — no extra DB query
+        collected_post_pks = self.context.get('collected_post_pks')
+        if collected_post_pks is not None:
+            return post.pk in collected_post_pks
         request = self.context.get('request')
         if request and request.user.is_authenticated:
             from snapsapi.apps.core.models import Collection
-            # Get the user's default collection
             default_collection = Collection.objects.filter(owner=request.user, name='default').first()
             if default_collection:
-                # Check if the post is in the default collection
                 return default_collection.posts.filter(pk=post.pk).exists()
         return False
 

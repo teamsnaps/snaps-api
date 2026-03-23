@@ -34,7 +34,11 @@ class CommentListCreateView(ListCreateAPIView):
         # Optimizes DB query performance using select_related and prefetch_related
         return Comment.objects.filter(is_deleted=False, post__uid=post_uid, parent__isnull=True) \
             .select_related('user', 'user__profile') \
-            .prefetch_related('replies')
+            .prefetch_related(
+                'replies',
+                'replies__user',
+                'replies__user__profile',
+            )
 
     def get_serializer_class(self):
         """

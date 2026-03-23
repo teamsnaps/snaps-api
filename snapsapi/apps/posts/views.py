@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import transaction
+from django.db.models import Exists, OuterRef
 from django.utils.decorators import method_decorator
 from django.utils.translation import gettext_lazy as _
 from drf_rw_serializers.generics import (
@@ -28,6 +29,8 @@ from snapsapi.apps.posts.schemas import (
     PRESIGNED_POST_URL_REQUEST_EXAMPLE,
 )
 from snapsapi.apps.core.pagination import StandardResultsSetPagination
+from snapsapi.apps.core.models import Collection
+from snapsapi.apps.likes.models import PostLike
 from snapsapi.apps.posts.models import Post, Tag
 from snapsapi.utils.aws import create_presigned_post, build_posts_image_object_name
 
@@ -42,13 +45,16 @@ class PostListCreateView(ListCreateAPIView):
     def get_queryset(self):
         queryset = (
             Post.objects.filter(is_deleted=False)
-            .prefetch_related(
-                'user__profile',
-                'images',
-                'tags'
-            )
+            .select_related('user', 'user__profile')
+            .prefetch_related('images', 'tags')
             .order_by('-created_at')
         )
+
+        user = self.request.user
+        if user.is_authenticated:
+            queryset = queryset.annotate(
+                is_liked=Exists(PostLike.objects.filter(post=OuterRef('pk'), user=user))
+            )
 
         tag_query = self.request.query_params.get('tag', None)
         keyword_query = self.request.query_params.get('keyword', None)
@@ -69,6 +75,16 @@ class PostListCreateView(ListCreateAPIView):
             ).distinct()
 
         return queryset
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        user = self.request.user
+        if user.is_authenticated:
+            default_collection = Collection.objects.filter(owner=user, name='default').first()
+            context['collected_post_pks'] = set(
+                default_collection.posts.values_list('pk', flat=True)
+            ) if default_collection else set()
+        return context
 
     # @extend_schema(
     #     summary=_("Create New Post"),
@@ -100,13 +116,35 @@ class PostListCreateView(ListCreateAPIView):
 
 @method_decorator(transaction.atomic, name='dispatch')
 class PostDetailView(RetrieveUpdateDestroyAPIView):
-    queryset = Post.objects.filter(is_deleted=False)
     permission_classes = [IsAuthenticatedOrReadOnly]
     read_serializer_class = s.PostReadSerializer
     write_serializer_class = s.PostWriteSerializer
     lookup_field = 'uid'
 
     http_method_names = ['get', 'patch', 'delete', 'head', 'options']
+
+    def get_queryset(self):
+        queryset = (
+            Post.objects.filter(is_deleted=False)
+            .select_related('user', 'user__profile')
+            .prefetch_related('images', 'tags')
+        )
+        user = self.request.user
+        if user.is_authenticated:
+            queryset = queryset.annotate(
+                is_liked=Exists(PostLike.objects.filter(post=OuterRef('pk'), user=user))
+            )
+        return queryset
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        user = self.request.user
+        if user.is_authenticated:
+            default_collection = Collection.objects.filter(owner=user, name='default').first()
+            context['collected_post_pks'] = set(
+                default_collection.posts.values_list('pk', flat=True)
+            ) if default_collection else set()
+        return context
 
     # def get_serializer_class(self):
     #     """
